@@ -1,0 +1,53 @@
+# ==============================================================================
+# Dockerfile.dev - Umbral Backend (Development Optimized)
+# ==============================================================================
+
+# STAGE 1 - builder
+FROM maven:3.9.9-eclipse-temurin-21-alpine AS builder
+
+WORKDIR /build
+
+# Cache dependencies
+COPY pom.xml ./
+RUN --mount=type=cache,target=/root/.m2,sharing=locked \
+    mvn dependency:go-offline -B
+
+# Compile and package (skipping tests)
+COPY src ./src
+RUN --mount=type=cache,target=/root/.m2,sharing=locked \
+    mvn clean package -DskipTests=true
+
+# Extract layers
+RUN java -Djarmode=layertools -jar target/*.jar extract --destination /build/layers
+
+# STAGE 2 - runner
+FROM eclipse-temurin:21-jre-alpine AS runner
+
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+WORKDIR /app
+
+# Copy layers
+COPY --from=builder /build/layers/dependencies          ./
+COPY --from=builder /build/layers/spring-boot-loader    ./
+COPY --from=builder /build/layers/snapshot-dependencies ./
+COPY --from=builder /build/layers/application           ./
+
+RUN chown -R appuser:appgroup /app
+USER appuser
+
+# Expose API and Socket.IO ports
+ENV PORT=8080
+EXPOSE 8080 8081
+
+# Simplified JVM options for dev (No Telemetry)
+ENV JAVA_TOOL_OPTIONS="\
+    -Xms256m \
+    -Xmx512m \
+    -Djava.security.egd=file:/dev/./urandom \
+    -Dfile.encoding=UTF-8 \
+    -Duser.timezone=America/Lima"
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+    CMD wget -qO- http://localhost:${PORT}/actuator/health || exit 1
+
+ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]

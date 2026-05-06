@@ -1,0 +1,94 @@
+spring:
+  application:
+    name: umbral-backend
+  config:
+    activate:
+      on-profile: local
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/umbraldb
+    username: umbral
+    password: CMOzj082uCQ1eSXThBhz9xbKO3PH75dUCRS82uPe9Uo55a4b5YM8Omuoa27jyGHW
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      pool-name: HikariPostgres
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 3000
+      idle-timeout: 120000
+      max-lifetime: 900000
+      keepalive-time: 60000
+      validation-timeout: 3000
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+      password: NUugeVHu2F78O15a975oBsrUeL5Sk9I3
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    show-sql: true
+    properties:
+      hibernate:
+        generate_statistics: true
+
+  mail:
+    host: localhost
+    port: 1025
+    username: ''
+    password: ''
+
+logging:
+  level:
+    com.codesoftlabs.umbral: DEBUG
+    org:
+      springframework:
+        web: DEBUG
+        security: DEBUG
+      hibernate:
+        SQL: DEBUG
+        type.descriptor.sql.BasicBinder: TRACE
+
+server:
+  port: 8080
+  compression:
+    enabled: false
+  tomcat:
+    threads:
+      max: 60
+      min-spare: 8
+    accept-count: 50
+    connection-timeout: 5000
+
+springdoc:
+  swagger-ui:
+    enabled: true
+  api-docs:
+    enabled: true
+
+umbral:
+  app:
+    cors:
+      allowed-origins: http://localhost:4200
+      allowed-methods: GET,POST,PUT,DELETE,OPTIONS,PATCH
+      allowed-headers: Content-Type,Authorization,X-Requested-With
+      allow-credentials: true
+      max-age: 3600
+  smtp:
+    web:
+      url: http://localhost:4200
+  email:
+    confirmation:
+      expiration: 604800000
+  jwt:
+    issuer: https://umbral.codesoftlabs.com
+    access:
+      secret: Sj3pa0o1g6jjQ3807o1jsV3kueM26uZzB93os476S5232nJf5hp7r7c6T2S0dA58w6l5CfV69h2Z3j2E63ANKOlN9H3KS9xG246qfiyrc1O756Jm92X5xE7sNqwYX6Nn
+      expiration: 5m
+    refresh:
+      secret: nb1RO7CvhNdK0c2sX3z8R3l07WXdrI48I2y5f0Og21s5e2DhROjKJNn6o7yoyj5ol9bry94U46b5jf3q1uoZcLr4KNo8Z8i0V4vdFs7u9DjXhtfjzzPCB1ol9Z10J238
+      expiration: 30d

@@ -1,0 +1,45 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  h2:
+    console:
+      enabled: true
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: false
+
+  data:
+    redis:
+      database: 0
+
+  cache:
+    type: simple
+
+server:
+  port: 0
+
+logging:
+  level:
+    root: WARN
+    com.codesoftlabs.umbral: INFO
+
+app:
+  jwt:
+    access-token-expiration: 1h
+    refresh-token-expiration: 24h
+
+springdoc:
+  swagger-ui:
+    enabled: true
+  api-docs:
+    enabled: true
