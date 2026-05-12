@@ -1,7 +1,9 @@
 package com.codesoftlabs.umbral.service;
 
 import com.codesoftlabs.umbral.dto.CreateAssetDto;
+import com.codesoftlabs.umbral.dto.response.AssetResponseDto;
 import com.codesoftlabs.umbral.entity.Asset;
+import com.codesoftlabs.umbral.mapper.AssetMapper;
 import com.codesoftlabs.umbral.repository.AssetRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,9 +20,10 @@ import java.util.stream.Collectors;
 public class AssetsService {
 
     private final AssetRepository assetRepository;
+    private final AssetMapper assetMapper;
 
     @Transactional
-    public Asset create(UUID userId, CreateAssetDto dto) {
+    public AssetResponseDto create(UUID userId, CreateAssetDto dto) {
         Asset asset = new Asset();
         asset.setUserId(userId);
         asset.setName(dto.getName());
@@ -33,12 +36,16 @@ public class AssetsService {
         asset.setCondition(dto.getCondition());
         asset.setIsActive(true);
 
-        return assetRepository.save(asset);
+        return assetMapper.toDto(assetRepository.save(asset));
     }
 
     public List<Map<String, Object>> findAll(UUID userId) {
         List<Asset> assets = assetRepository.findByUserIdOrderByNameAsc(userId);
         return assets.stream().map(this::computeAsset).collect(Collectors.toList());
+    }
+
+    public AssetResponseDto findOneDto(UUID userId, UUID id) {
+        return assetMapper.toDto(findOne(userId, id));
     }
 
     public Asset findOne(UUID userId, UUID id) {
@@ -47,7 +54,7 @@ public class AssetsService {
     }
 
     @Transactional
-    public Asset update(UUID userId, UUID id, CreateAssetDto dto) {
+    public AssetResponseDto update(UUID userId, UUID id, CreateAssetDto dto) {
         Asset asset = findOne(userId, id);
 
         if (dto.getName() != null) asset.setName(dto.getName());
@@ -57,7 +64,7 @@ public class AssetsService {
         if (dto.getCurrency() != null) asset.setCurrency(dto.getCurrency());
         if (dto.getCondition() != null) asset.setCondition(dto.getCondition());
 
-        return assetRepository.save(asset);
+        return assetMapper.toDto(assetRepository.save(asset));
     }
 
     @Transactional

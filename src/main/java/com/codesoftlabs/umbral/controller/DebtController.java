@@ -2,8 +2,8 @@ package com.codesoftlabs.umbral.controller;
 
 import com.codesoftlabs.umbral.dto.CreateDebtDto;
 import com.codesoftlabs.umbral.dto.DebtPaymentRequestDto;
-import com.codesoftlabs.umbral.entity.Debt;
-import com.codesoftlabs.umbral.entity.Transaction;
+import com.codesoftlabs.umbral.dto.TransactionDto;
+import com.codesoftlabs.umbral.dto.response.DebtResponseDto;
 import com.codesoftlabs.umbral.service.DebtsService;
 import com.codesoftlabs.umbral.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,12 +36,12 @@ public class DebtController {
     @PostMapping
     @Operation(summary = "Create a new debt", description = "Creates a new debt record for the current user")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Debt created successfully", content = @Content(schema = @Schema(implementation = Debt.class))),
+            @ApiResponse(responseCode = "200", description = "Debt created successfully", content = @Content(schema = @Schema(implementation = DebtResponseDto.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input provided"),
             @ApiResponse(responseCode = "401", description = "Unauthorized - authentication required"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<Debt> create(@RequestAttribute("userId") UUID userId, @Valid @RequestBody CreateDebtDto dto) {
+    public ResponseEntity<DebtResponseDto> create(@RequestAttribute("userId") UUID userId, @Valid @RequestBody CreateDebtDto dto) {
         return ResponseEntity.ok(debtsService.create(userId, dto));
     }
 
@@ -59,27 +59,27 @@ public class DebtController {
     @GetMapping("/{id}")
     @Operation(summary = "Get a specific debt", description = "Retrieves details of a specific debt by ID")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Debt retrieved successfully", content = @Content(schema = @Schema(implementation = Debt.class))),
+            @ApiResponse(responseCode = "200", description = "Debt retrieved successfully", content = @Content(schema = @Schema(implementation = DebtResponseDto.class))),
             @ApiResponse(responseCode = "401", description = "Unauthorized - authentication required"),
             @ApiResponse(responseCode = "403", description = "Forbidden - insufficient permissions"),
             @ApiResponse(responseCode = "404", description = "Debt not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<Debt> findOne(@RequestAttribute("userId") UUID userId, @PathVariable @Parameter(description = "Debt ID") UUID id) {
-        return ResponseEntity.ok(debtsService.findOne(userId, id));
+    public ResponseEntity<DebtResponseDto> findOne(@RequestAttribute("userId") UUID userId, @PathVariable @Parameter(description = "Debt ID") UUID id) {
+        return ResponseEntity.ok(debtsService.findOneDto(userId, id));
     }
 
     @PostMapping("/{id}/payments")
     @Operation(summary = "Record a debt payment", description = "Records a payment transaction for an existing debt")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Payment recorded successfully", content = @Content(schema = @Schema(implementation = Transaction.class))),
+            @ApiResponse(responseCode = "200", description = "Payment recorded successfully", content = @Content(schema = @Schema(implementation = TransactionDto.class))),
             @ApiResponse(responseCode = "400", description = "Invalid payment amount or account"),
             @ApiResponse(responseCode = "401", description = "Unauthorized - authentication required"),
             @ApiResponse(responseCode = "403", description = "Forbidden - insufficient permissions"),
             @ApiResponse(responseCode = "404", description = "Debt or account not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<Transaction> recordPayment(
+    public ResponseEntity<TransactionDto> recordPayment(
             @RequestAttribute("userId") UUID userId,
             @PathVariable @Parameter(description = "Debt ID") UUID id,
             @Valid @RequestBody DebtPaymentRequestDto dto) {
@@ -91,14 +91,14 @@ public class DebtController {
     @PatchMapping("/{id}")
     @Operation(summary = "Update a debt", description = "Updates an existing debt record")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Debt updated successfully", content = @Content(schema = @Schema(implementation = Debt.class))),
+            @ApiResponse(responseCode = "200", description = "Debt updated successfully", content = @Content(schema = @Schema(implementation = DebtResponseDto.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input provided"),
             @ApiResponse(responseCode = "401", description = "Unauthorized - authentication required"),
             @ApiResponse(responseCode = "403", description = "Forbidden - insufficient permissions"),
             @ApiResponse(responseCode = "404", description = "Debt not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<Debt> update(@RequestAttribute("userId") UUID userId, @PathVariable @Parameter(description = "Debt ID") UUID id, @Valid @RequestBody CreateDebtDto dto) {
+    public ResponseEntity<DebtResponseDto> update(@RequestAttribute("userId") UUID userId, @PathVariable @Parameter(description = "Debt ID") UUID id, @Valid @RequestBody CreateDebtDto dto) {
         return ResponseEntity.ok(debtsService.update(userId, id, dto));
     }
 

@@ -1,9 +1,13 @@
 package com.codesoftlabs.umbral.service;
 
 import com.codesoftlabs.umbral.dto.CreateDebtDto;
+import com.codesoftlabs.umbral.dto.TransactionDto;
+import com.codesoftlabs.umbral.dto.response.DebtResponseDto;
 import com.codesoftlabs.umbral.entity.Category;
 import com.codesoftlabs.umbral.entity.Debt;
 import com.codesoftlabs.umbral.entity.Transaction;
+import com.codesoftlabs.umbral.mapper.DebtMapper;
+import com.codesoftlabs.umbral.mapper.TransactionMapper;
 import com.codesoftlabs.umbral.repository.CategoryRepository;
 import com.codesoftlabs.umbral.repository.DebtRepository;
 import com.codesoftlabs.umbral.repository.TransactionRepository;
@@ -26,9 +30,11 @@ public class DebtsService {
     private final DebtRepository debtRepository;
     private final CategoryRepository categoryRepository;
     private final TransactionRepository transactionRepository;
+    private final DebtMapper debtMapper;
+    private final TransactionMapper transactionMapper;
 
     @Transactional
-    public Debt create(UUID userId, CreateDebtDto dto) {
+    public DebtResponseDto create(UUID userId, CreateDebtDto dto) {
         Debt debt = new Debt();
         debt.setUserId(userId);
         debt.setName(dto.getName());
@@ -40,12 +46,16 @@ public class DebtsService {
         debt.setDueDate(dto.getDueDate() != null ? dto.getDueDate().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime() : null);
         debt.setStatus("ACTIVE");
 
-        return debtRepository.save(debt);
+        return debtMapper.toDto(debtRepository.save(debt));
     }
 
     public List<Map<String, Object>> findAll(UUID userId) {
         List<Debt> debts = debtRepository.findByUserIdOrderByCreatedAtDesc(userId);
         return debts.stream().map(this::computeDebt).collect(Collectors.toList());
+    }
+
+    public DebtResponseDto findOneDto(UUID userId, UUID id) {
+        return debtMapper.toDto(findOne(userId, id));
     }
 
     public Debt findOne(UUID userId, UUID id) {
@@ -54,7 +64,7 @@ public class DebtsService {
     }
 
     @Transactional
-    public Transaction recordPayment(UUID userId, UUID id, BigDecimal amount, UUID accountId, String description) {
+    public TransactionDto recordPayment(UUID userId, UUID id, BigDecimal amount, UUID accountId, String description) {
         Debt debt = findOne(userId, id);
 
         Category category = categoryRepository.findFirstByUserIdAndNameContainingIgnoreCase(userId, "debt")
@@ -79,11 +89,11 @@ public class DebtsService {
         debt.setRemainingAmount(newRemaining);
         debtRepository.save(debt);
 
-        return savedTransaction;
+        return transactionMapper.toDto(savedTransaction);
     }
 
     @Transactional
-    public Debt update(UUID userId, UUID id, CreateDebtDto dto) {
+    public DebtResponseDto update(UUID userId, UUID id, CreateDebtDto dto) {
         Debt debt = findOne(userId, id);
 
         if (dto.getName() != null) debt.setName(dto.getName());
@@ -95,7 +105,7 @@ public class DebtsService {
         if (dto.getDueDate() != null)
             debt.setDueDate(dto.getDueDate().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime());
 
-        return debtRepository.save(debt);
+        return debtMapper.toDto(debtRepository.save(debt));
     }
 
     @Transactional

@@ -48,14 +48,14 @@ public class Budget extends AuditableEntity {
     @Column(name = "category_id", nullable = false)
     private UUID categoryId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id", insertable = false, updatable = false)
     private Category category;
 
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
 

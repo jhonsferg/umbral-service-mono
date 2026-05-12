@@ -1,6 +1,7 @@
 package com.codesoftlabs.umbral.controller;
 
 import com.codesoftlabs.umbral.dto.UpdateUserDto;
+import com.codesoftlabs.umbral.dto.UserDto;
 import com.codesoftlabs.umbral.entity.User;
 import com.codesoftlabs.umbral.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -29,23 +31,23 @@ public class UserController {
     @GetMapping("/me")
     @Operation(summary = "Get current user profile", description = "Retrieves the profile information for the authenticated user")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved user profile", content = @Content(schema = @Schema(implementation = User.class))),
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved user profile", content = @Content(schema = @Schema(implementation = UserDto.class))),
             @ApiResponse(responseCode = "401", description = "Unauthorized - authentication required"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public User getMe(@RequestAttribute("userId") UUID userId) {
-        return userService.findById(userId);
+    public ResponseEntity<UserDto> getMe(@RequestAttribute("userId") UUID userId) {
+        return ResponseEntity.ok(userService.getUserProfile(userId));
     }
 
     @PatchMapping("/me")
     @Operation(summary = "Update current user profile", description = "Updates the profile information for the authenticated user")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "User profile updated successfully", content = @Content(schema = @Schema(implementation = User.class))),
+            @ApiResponse(responseCode = "200", description = "User profile updated successfully", content = @Content(schema = @Schema(implementation = UserDto.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input provided"),
             @ApiResponse(responseCode = "401", description = "Unauthorized - authentication required"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public User updateMe(@RequestAttribute("userId") UUID userId, @Valid @RequestBody UpdateUserDto updateDto) {
-        return userService.update(userId, updateDto);
+    public ResponseEntity<UserDto> updateMe(@RequestAttribute("userId") UUID userId, @Valid @RequestBody UpdateUserDto updateDto) {
+        return ResponseEntity.ok(userService.update(userId, updateDto));
     }
 }

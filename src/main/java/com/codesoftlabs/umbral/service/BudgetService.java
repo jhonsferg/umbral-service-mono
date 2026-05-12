@@ -1,12 +1,11 @@
 package com.codesoftlabs.umbral.service;
 
+import com.codesoftlabs.umbral.dto.BudgetDto;
 import com.codesoftlabs.umbral.dto.CreateBudgetDto;
 import com.codesoftlabs.umbral.entity.Budget;
+import com.codesoftlabs.umbral.mapper.BudgetMapper;
 import com.codesoftlabs.umbral.repository.BudgetRepository;
 import com.codesoftlabs.umbral.repository.TransactionRepository;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,18 +19,16 @@ public class BudgetService {
 
     private final BudgetRepository budgetRepository;
     private final TransactionRepository transactionRepository;
+    private final BudgetMapper budgetMapper;
 
-    public BudgetService(BudgetRepository budgetRepository, TransactionRepository transactionRepository) {
+    public BudgetService(BudgetRepository budgetRepository, TransactionRepository transactionRepository, BudgetMapper budgetMapper) {
         this.budgetRepository = budgetRepository;
         this.transactionRepository = transactionRepository;
+        this.budgetMapper = budgetMapper;
     }
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "budgets:all", key = "#userId + ':' + #dto.month + ':' + #dto.year"),
-            @CacheEvict(value = "budgets:progress", key = "#userId + ':' + #dto.month + ':' + #dto.year")
-    })
-    public Budget create(UUID userId, CreateBudgetDto dto) {
+    public BudgetDto create(UUID userId, CreateBudgetDto dto) {
         Optional<Budget> existing = budgetRepository.findByUserIdAndCategoryIdAndMonthAndYear(
                 userId, dto.getCategoryId(), dto.getMonth(), dto.getYear());
 
@@ -50,18 +47,21 @@ public class BudgetService {
                 .rollover(dto.getRollover() != null ? dto.getRollover() : false)
                 .build();
 
-        return budgetRepository.save(budget);
+        return budgetMapper.toDto(budgetRepository.save(budget));
     }
 
-    @Cacheable(value = "budgets:all", key = "#userId + ':' + #month + ':' + #year")
-    public List<Budget> findAll(UUID userId, Integer month, Integer year) {
+    @Transactional
+    public List<BudgetDto> findAll(UUID userId, Integer month, Integer year) {
         int currentMonth = month != null ? month : LocalDateTime.now().getMonthValue();
         int currentYear = year != null ? year : LocalDateTime.now().getYear();
 
-        return budgetRepository.findByUserIdAndMonthAndYear(userId, currentMonth, currentYear);
+        return budgetRepository.findByUserIdAndMonthAndYear(userId, currentMonth, currentYear)
+                .stream()
+                .map(budgetMapper::toDto)
+                .toList();
     }
 
-    @Cacheable(value = "budgets:progress", key = "#userId + ':' + #month + ':' + #year")
+    @Transactional
     public List<Map<String, Object>> getBudgetProgress(UUID userId, Integer month, Integer year) {
         int currentMonth = month != null ? month : LocalDateTime.now().getMonthValue();
         int currentYear = year != null ? year : LocalDateTime.now().getYear();
@@ -120,14 +120,14 @@ public class BudgetService {
     }
 
     @Transactional
-    public Budget update(UUID userId, UUID id, Double amount) {
+    public BudgetDto update(UUID userId, UUID id, Double amount) {
         Budget budget = budgetRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new RuntimeException("Budget not found"));
 
         budget.setAmount(BigDecimal.valueOf(amount));
         Budget saved = budgetRepository.save(budget);
 
-        return saved;
+        return budgetMapper.toDto(saved);
     }
 
     @Transactional

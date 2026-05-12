@@ -1,13 +1,13 @@
 package com.codesoftlabs.umbral.service;
 
 import com.codesoftlabs.umbral.dto.CreateRecurringTransactionDto;
+import com.codesoftlabs.umbral.dto.RecurringTransactionDto;
 import com.codesoftlabs.umbral.dto.UpdateRecurringTransactionDto;
 import com.codesoftlabs.umbral.entity.RecurringTransaction;
+import com.codesoftlabs.umbral.mapper.RecurringTransactionMapper;
 import com.codesoftlabs.umbral.repository.RecurringTransactionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,14 +23,15 @@ public class RecurringTransactionService {
     private static final Logger logger = LoggerFactory.getLogger(RecurringTransactionService.class);
 
     private final RecurringTransactionRepository recurringTransactionRepository;
+    private final RecurringTransactionMapper recurringTransactionMapper;
 
-    public RecurringTransactionService(RecurringTransactionRepository recurringTransactionRepository) {
+    public RecurringTransactionService(RecurringTransactionRepository recurringTransactionRepository, RecurringTransactionMapper recurringTransactionMapper) {
         this.recurringTransactionRepository = recurringTransactionRepository;
+        this.recurringTransactionMapper = recurringTransactionMapper;
     }
 
     @Transactional
-    @CacheEvict(value = "recurring:all", key = "#userId")
-    public RecurringTransaction create(UUID userId, CreateRecurringTransactionDto dto) {
+    public RecurringTransactionDto create(UUID userId, CreateRecurringTransactionDto dto) {
         UUID categoryId = dto.getCategoryId();
 
         RecurringTransaction recurring = RecurringTransaction.builder()
@@ -48,12 +49,11 @@ public class RecurringTransactionService {
                 .autoGenerate(true)
                 .build();
 
-        return recurringTransactionRepository.save(recurring);
+        return recurringTransactionMapper.toDto(recurringTransactionRepository.save(recurring));
     }
 
     @Transactional
-    @CacheEvict(value = "recurring:all", key = "#userId")
-    public RecurringTransaction update(UUID userId, UUID id, UpdateRecurringTransactionDto dto) {
+    public RecurringTransactionDto update(UUID userId, UUID id, UpdateRecurringTransactionDto dto) {
         RecurringTransaction recurring = recurringTransactionRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new IllegalArgumentException("Recurring transaction not found"));
 
@@ -75,16 +75,18 @@ public class RecurringTransactionService {
         if (dto.getStatus() != null)
             recurring.setStatus(dto.getStatus());
 
-        return recurringTransactionRepository.save(recurring);
+        return recurringTransactionMapper.toDto(recurringTransactionRepository.save(recurring));
     }
 
-    @Cacheable(value = "recurring:all", key = "#userId")
-    public List<RecurringTransaction> findAll(UUID userId) {
-        return recurringTransactionRepository.findByUserIdOrderByNextOccurrenceDateAsc(userId);
+    @Transactional(readOnly = true)
+    public List<RecurringTransactionDto> findAll(UUID userId) {
+        return recurringTransactionRepository.findByUserIdOrderByNextOccurrenceDateAsc(userId)
+                .stream()
+                .map(recurringTransactionMapper::toDto)
+                .toList();
     }
 
     @Transactional
-    @CacheEvict(value = "recurring:all", key = "#userId")
     public void remove(UUID userId, UUID id) {
         recurringTransactionRepository.deleteByIdAndUserId(id, userId);
     }

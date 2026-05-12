@@ -7,7 +7,6 @@ import com.codesoftlabs.umbral.dto.LoginDto;
 import com.codesoftlabs.umbral.dto.MfaVerifyDto;
 import com.codesoftlabs.umbral.dto.RegisterDto;
 import com.codesoftlabs.umbral.dto.TokenPairDto;
-import com.codesoftlabs.umbral.dto.UserDto;
 import com.codesoftlabs.umbral.entity.EmailConfirmationToken;
 import com.codesoftlabs.umbral.entity.Session;
 import com.codesoftlabs.umbral.entity.User;
@@ -23,12 +22,11 @@ import com.codesoftlabs.umbral.util.TimeUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -56,7 +54,6 @@ public class AuthService {
     /**
      * Register a new user account
      */
-    @CacheEvict(value = "userCache", allEntries = true)
     public Map<String, String> register(RegisterDto registerDto) {
         log.info("Registering new user: {}", registerDto.getEmail());
         log.info("Using SMTP Web URL: {}", this.mailBean.getSmtpWebUrl());
@@ -82,7 +79,8 @@ public class AuthService {
         // Generate unique confirmation token
         String confirmationToken = UUID.randomUUID().toString();
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime expiresAt = now.plusNanos(TimeUtils.parseDuration(this.mailBean.getEmailConfirmationExpiration()) * 1_000_000);
+        LocalDateTime expiresAt = now
+                .plusNanos(TimeUtils.parseDuration(this.mailBean.getEmailConfirmationExpiration()) * 1_000_000);
         EmailConfirmationToken emailToken = EmailConfirmationToken.builder()
                 .token(confirmationToken)
                 .userId(user.getId())
@@ -103,7 +101,7 @@ public class AuthService {
         mailService.sendEmail(user.getEmail(), user.getFirstName(), EmailTemplateType.CONFIRM_EMAIL, vars);
 
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Registration successful. Please check your email for confirmation link.");
+        response.put("message", "Registro exitoso. Por favor, verifique su correo electrónico.");
         return response;
     }
 
@@ -114,16 +112,16 @@ public class AuthService {
         log.info("Login attempt for email: {}", loginDto.getEmail());
 
         User user = userRepository.findByEmail(loginDto.getEmail())
-                .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
+                .orElseThrow(() -> new UnauthorizedException("Usuario y/o contraseña incorrectos."));
 
         if (!user.getIsActive()) {
             log.warn("Login attempt for inactive user: {}", loginDto.getEmail());
-            throw new ForbiddenException("User account is not active. Please verify your email.");
+            throw new ForbiddenException("Usuario no activo. Por favor, verifique su correo electrónico.");
         }
 
         if (!passwordEncoder.matches(loginDto.getPassword(), user.getPassword())) {
             log.warn("Invalid password for user: {}", loginDto.getEmail());
-            throw new UnauthorizedException("Invalid credentials");
+            throw new UnauthorizedException("Usuario y/o contraseña incorrectos.");
         }
 
         if (user.getMfaEnabled() != null && user.getMfaEnabled()) {
@@ -131,7 +129,7 @@ public class AuthService {
             return TokenPairDto.builder()
                     .requireMfa(true)
                     .userId(user.getId().toString())
-                    .message("Two-factor authentication required")
+                    .message("Se requiere autenticación de dos factores.")
                     .build();
         }
 
@@ -146,15 +144,15 @@ public class AuthService {
         log.info("MFA verification for user: {}", verifyDto.getUserId());
 
         User user = userRepository.findById(verifyDto.getUserId())
-                .orElseThrow(() -> new UnauthorizedException("Invalid request"));
+                .orElseThrow(() -> new UnauthorizedException("Solicitud inválida."));
 
         if (user.getMfaSecret() == null) {
-            throw new BadRequestException("MFA not configured for this user");
+            throw new BadRequestException("MFA no configurado para este usuario.");
         }
 
         if (!mfaService.verifyCode(verifyDto.getCode(), user.getMfaSecret())) {
             log.warn("Invalid MFA code for user: {}", user.getId());
-            throw new UnauthorizedException("Invalid MFA code");
+            throw new UnauthorizedException("Código MFA inválido.");
         }
 
         DeviceInfo deviceInfo = deviceInfoService.getDeviceInfo(request);
@@ -172,7 +170,6 @@ public class AuthService {
     /**
      * Get all active sessions for user
      */
-    @Cacheable(value = "userSessions", key = "#userId")
     public List<Session> getActiveSessions(UUID userId) {
         log.debug("Fetching active sessions for user: {}", userId);
         return sessionService.getActiveSessions(userId);
@@ -181,7 +178,6 @@ public class AuthService {
     /**
      * Revoke a specific session
      */
-    @CacheEvict(value = "userSessions", key = "#userId")
     public void revokeSession(UUID userId, UUID sessionId, String reason) {
         log.info("Revoking session {} for user: {}", sessionId, userId);
         sessionService.revokeSession(sessionId, reason);
@@ -195,14 +191,14 @@ public class AuthService {
         log.info("Refreshing tokens for user: {}", userId);
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UnauthorizedException("Access denied"));
+                .orElseThrow(() -> new UnauthorizedException("Acceso denegado."));
 
         Session session = sessionService.getSessionByRefreshToken(refreshToken, userId)
-                .orElseThrow(() -> new UnauthorizedException("Access denied"));
+                .orElseThrow(() -> new UnauthorizedException("Acceso denegado."));
 
         if (!sessionService.isSessionValid(session)) {
             log.warn("Invalid session for user: {}", userId);
-            throw new UnauthorizedException("Session expired or revoked");
+            throw new UnauthorizedException("Su sesión ha expirado o ha sido revocada.");
         }
 
         String email = user.getEmail();
@@ -212,8 +208,10 @@ public class AuthService {
 
         session.setAccessToken(newAccessToken);
         session.setRefreshToken(newRefreshToken);
-        session.setAccessExpiresAt(LocalDateTime.now().plusNanos(TimeUtils.parseDuration(jwtBean.getAccessExpiration())));
-        session.setRefreshExpiresAt(LocalDateTime.now().plusNanos(TimeUtils.parseDuration(jwtBean.getRefreshExpiration())));
+        session.setAccessExpiresAt(
+                LocalDateTime.now().plus(Duration.ofMillis(TimeUtils.parseDuration(jwtBean.getAccessExpiration()))));
+        session.setRefreshExpiresAt(
+                LocalDateTime.now().plus(Duration.ofMillis(TimeUtils.parseDuration(jwtBean.getRefreshExpiration()))));
         session.setLastUsedAt(LocalDateTime.now());
         sessionRepository.save(session);
 
@@ -234,23 +232,22 @@ public class AuthService {
 
         try {
             EmailConfirmationToken confirmationToken = emailConfirmationTokenRepository.findValidToken(token)
-                    .orElseThrow(() -> new BadRequestException("Invalid confirmation token"));
+                    .orElseThrow(() -> new BadRequestException("Token de confirmación inválido."));
 
-            // Check if token is expired
             if (LocalDateTime.now().isAfter(confirmationToken.getExpiresAt())) {
-                throw new BadRequestException("Confirmation token has expired");
+                throw new BadRequestException("El token de confirmación ha expirado.");
             }
 
             if (confirmationToken.getIsUsed()) {
-                throw new BadRequestException("Confirmation token already used");
+                throw new BadRequestException("El token de confirmación ya ha sido usado.");
             }
 
             User user = userRepository.findById(confirmationToken.getUserId())
-                    .orElseThrow(() -> new BadRequestException("User not found"));
+                    .orElseThrow(() -> new BadRequestException("Usuario no encontrado."));
 
             if (user.getIsActive()) {
                 Map<String, String> res = new HashMap<>();
-                res.put("message", "Email already confirmed");
+                res.put("message", "Correo electrónico ya confirmado.");
                 return res;
             }
 
@@ -274,20 +271,19 @@ public class AuthService {
             log.info("Email confirmed for user: {}", user.getId());
 
             Map<String, String> res = new HashMap<>();
-            res.put("message", "Email confirmed successfully");
+            res.put("message", "Correo electrónico confirmado exitosamente.");
             return res;
         } catch (BadRequestException e) {
             throw e;
         } catch (Exception e) {
             log.error("Error confirming email: {}", e.getMessage());
-            throw new BadRequestException("Invalid or expired token");
+            throw new BadRequestException("Token de confirmación inválido o expirado.");
         }
     }
 
     /**
      * Clear user cache after email confirmation
      */
-    @CacheEvict(value = "userCache", allEntries = true)
     public void clearUserCache() {
         log.debug("Clearing user cache");
     }
@@ -295,21 +291,19 @@ public class AuthService {
     /**
      * Get cached user by ID
      */
-    @Cacheable(value = "userCache", key = "#userId")
     public User getUserById(String userId) {
         log.debug("Fetching user by ID: {}", userId);
         return userRepository.findById(UUID.fromString(userId))
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado."));
     }
 
     /**
      * Get cached user by email
      */
-    @Cacheable(value = "userCache", key = "'email:' + #email")
     public User getUserByEmail(String email) {
         log.debug("Fetching user by email: {}", email);
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado."));
     }
 
     /**
@@ -325,11 +319,13 @@ public class AuthService {
         String refreshToken = jwtProvider.generateRefreshToken(userId);
 
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime accessExpiresAt = now.plusNanos(TimeUtils.parseDuration(jwtBean.getAccessExpiration()));
-        LocalDateTime refreshExpiresAt = now.plusNanos(TimeUtils.parseDuration(jwtBean.getRefreshExpiration()));
+        LocalDateTime accessExpiresAt = now
+                .plus(Duration.ofMillis(TimeUtils.parseDuration(jwtBean.getAccessExpiration())));
+        LocalDateTime refreshExpiresAt = now
+                .plus(Duration.ofMillis(TimeUtils.parseDuration(jwtBean.getRefreshExpiration())));
 
-        Session session = sessionService.createSession(userId, accessToken, refreshToken,
-                accessExpiresAt, refreshExpiresAt, deviceInfo);
+        Session session = sessionService.createSession(userId, accessToken, refreshToken, accessExpiresAt,
+                refreshExpiresAt, deviceInfo);
 
         // Create or update device for this user
         sessionService.createOrUpdateDevice(userId, deviceInfo);
@@ -340,30 +336,6 @@ public class AuthService {
         return TokenPairDto.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
-                .user(mapToDto(user))
-                .build();
-    }
-
-    /**
-     * Map User entity to DTO
-     */
-    private UserDto mapToDto(User user) {
-        return UserDto.builder()
-                .id(user.getId())
-                .email(user.getEmail())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .avatarUrl(user.getAvatarUrl())
-                .phoneNumber(user.getPhoneNumber())
-                .locale(user.getLocale())
-                .timezone(user.getTimezone())
-                .defaultCurrency(user.getDefaultCurrency())
-                .isActive(user.getIsActive())
-                .mfaEnabled(user.getMfaEnabled())
-                .lastLogin(user.getLastLogin())
-                .emailVerifiedAt(user.getEmailVerifiedAt())
-                .createdAt(user.getCreatedAt())
-                .updatedAt(user.getUpdatedAt())
                 .build();
     }
 }

@@ -65,28 +65,28 @@ public class Transaction extends AuditableEntity {
     @Column(name = "category_id")
     private UUID categoryId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id", insertable = false, updatable = false)
     private Category category;
 
     @Column(name = "account_id")
     private UUID accountId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "account_id", insertable = false, updatable = false)
     private Account account;
 
     @Column(name = "debt_id")
     private UUID debtId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "debt_id", insertable = false, updatable = false)
     private Debt debt;
 
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
 

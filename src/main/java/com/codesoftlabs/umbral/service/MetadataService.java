@@ -1,10 +1,10 @@
 package com.codesoftlabs.umbral.service;
 
 import com.codesoftlabs.umbral.common.enums.*;
+import com.codesoftlabs.umbral.dto.CurrencyDto;
 import com.codesoftlabs.umbral.entity.Currency;
 import com.codesoftlabs.umbral.repository.CurrencyRepository;
 import jakarta.annotation.PostConstruct;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,9 +36,19 @@ public class MetadataService {
         }
     }
 
-    @Cacheable(value = "currencies")
-    public List<Currency> getCurrencies() {
-        return currencyRepository.findAllByOrderByCodeAsc();
+    @Transactional(readOnly = true)
+    public List<CurrencyDto> getCurrencies() {
+        return currencyRepository.findAllByOrderByCodeAsc()
+                .stream()
+                .map(c -> CurrencyDto.builder()
+                        .id(c.getId())
+                        .code(c.getCode())
+                        .symbol(c.getSymbol())
+                        .name(c.getName())
+                        .namePlural(c.getNamePlural())
+                        .decimalPlaces(c.getDecimalPlaces())
+                        .build())
+                .toList();
     }
 
     public Map<String, Object> getEnums() {

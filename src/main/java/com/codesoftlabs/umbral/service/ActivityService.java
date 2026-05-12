@@ -1,5 +1,6 @@
 package com.codesoftlabs.umbral.service;
 
+import com.codesoftlabs.umbral.dto.ActivityLogDto;
 import com.codesoftlabs.umbral.entity.ActivityLog;
 import com.codesoftlabs.umbral.repository.ActivityLogRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +19,7 @@ public class ActivityService {
     private final ActivityLogRepository activityLogRepository;
 
     @Transactional
-    public ActivityLog log(UUID userId, String action, String entityType, UUID entityId, String description, Map<String, Object> metadata) {
+    public ActivityLogDto log(UUID userId, String action, String entityType, UUID entityId, String description, Map<String, Object> metadata) {
         ActivityLog activityLog = new ActivityLog();
         activityLog.setUserId(userId);
         activityLog.setAction(action);
@@ -26,10 +27,24 @@ public class ActivityService {
         activityLog.setEntityId(entityId);
         activityLog.setDetails(description);
 
-        return activityLogRepository.save(activityLog);
+        return toDto(activityLogRepository.save(activityLog));
     }
 
-    public List<ActivityLog> findAll(UUID userId, int limit) {
-        return activityLogRepository.findByUserIdOrderByCreatedAtDesc(userId, PageRequest.of(0, limit));
+    public List<ActivityLogDto> findAll(UUID userId, int limit) {
+        return activityLogRepository.findByUserIdOrderByCreatedAtDesc(userId, PageRequest.of(0, limit))
+                .stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    private ActivityLogDto toDto(ActivityLog entity) {
+        return ActivityLogDto.builder()
+                .id(entity.getId())
+                .action(entity.getAction())
+                .entityType(entity.getEntityType())
+                .entityId(entity.getEntityId())
+                .details(entity.getDetails())
+                .createdAt(entity.getCreatedAt())
+                .build();
     }
 }

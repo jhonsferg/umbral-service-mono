@@ -1,6 +1,7 @@
 package com.codesoftlabs.umbral.dto;
 
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -15,7 +16,7 @@ public class UpdateTransactionDto {
     @Min(value = 0, message = "Amount must be greater than or equal to 0")
     private Double amount;
 
-    private Date date;
+    private String date;
 
     @Size(max = 255, message = "Description cannot exceed 255 characters")
     private String description;
@@ -26,10 +27,9 @@ public class UpdateTransactionDto {
     @Pattern(regexp = "^(INCOME|EXPENSE|TRANSFER)$", message = "Transaction type must be INCOME, EXPENSE, or TRANSFER")
     private String type;
 
-    @Pattern(regexp = "^[A-Z]{3}$", message = "Currency code must be a valid 3-letter ISO code")
-    private String currencyCode;
-
+    @NotNull(message = "Category ID cannot be null")
     private UUID categoryId;
+
+    @NotNull(message = "Account ID cannot be null")
     private UUID accountId;
-    private UUID debtId;
 }

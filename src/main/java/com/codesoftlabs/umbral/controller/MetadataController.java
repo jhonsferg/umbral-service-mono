@@ -1,6 +1,6 @@
 package com.codesoftlabs.umbral.controller;
 
-import com.codesoftlabs.umbral.entity.Currency;
+import com.codesoftlabs.umbral.dto.CurrencyDto;
 import com.codesoftlabs.umbral.service.MetadataService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,11 +29,11 @@ public class MetadataController {
     @GetMapping("/currencies")
     @Operation(summary = "Get all supported currencies", description = "Retrieves a list of all supported currencies for account and transaction operations")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved currencies", content = @Content(schema = @Schema(implementation = Currency.class))),
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved currencies", content = @Content(schema = @Schema(implementation = CurrencyDto.class))),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public List<Currency> getCurrencies() {
-        return metadataService.getCurrencies();
+    public ResponseEntity<List<CurrencyDto>> getCurrencies() {
+        return ResponseEntity.ok(metadataService.getCurrencies());
     }
 
     @GetMapping("/enums")
@@ -41,7 +42,7 @@ public class MetadataController {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved enums", content = @Content(schema = @Schema(implementation = Map.class))),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public Map<String, Object> getEnums() {
-        return metadataService.getEnums();
+    public ResponseEntity<Map<String, Object>> getEnums() {
+        return ResponseEntity.ok(metadataService.getEnums());
     }
 }

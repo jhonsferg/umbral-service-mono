@@ -3,10 +3,12 @@ package com.codesoftlabs.umbral.service;
 import com.codesoftlabs.umbral.common.enums.AccountRole;
 import com.codesoftlabs.umbral.dto.CreateTransactionDto;
 import com.codesoftlabs.umbral.dto.PaginatedResponseDto;
+import com.codesoftlabs.umbral.dto.TransactionDto;
 import com.codesoftlabs.umbral.dto.UpdateTransactionDto;
 import com.codesoftlabs.umbral.entity.Account;
 import com.codesoftlabs.umbral.entity.Category;
 import com.codesoftlabs.umbral.entity.Transaction;
+import com.codesoftlabs.umbral.mapper.TransactionMapper;
 import com.codesoftlabs.umbral.repository.AccountRepository;
 import com.codesoftlabs.umbral.repository.CategoryRepository;
 import com.codesoftlabs.umbral.repository.TransactionRepository;
@@ -17,9 +19,6 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -31,38 +30,35 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 
 @Service
 public class TransactionService {
-
+    private final SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
     private final TransactionRepository transactionRepository;
     private final AccountRepository accountRepository;
     private final CategoryRepository categoryRepository;
+    private final TransactionMapper transactionMapper;
 
     @PersistenceContext
     private EntityManager entityManager;
 
     public TransactionService(TransactionRepository transactionRepository,
                               AccountRepository accountRepository,
-                              CategoryRepository categoryRepository) {
+                              CategoryRepository categoryRepository,
+                              TransactionMapper transactionMapper) {
         this.transactionRepository = transactionRepository;
         this.accountRepository = accountRepository;
         this.categoryRepository = categoryRepository;
+        this.transactionMapper = transactionMapper;
     }
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "transactions:balance", key = "#userId"),
-            @CacheEvict(value = "transactions:category-summary", key = "#userId"),
-            @CacheEvict(value = "transactions:trend", key = "#userId + '-1M'"),
-            @CacheEvict(value = "transactions:trend", key = "#userId + '-3M'"),
-            @CacheEvict(value = "transactions:trend", key = "#userId + '-6M'"),
-            @CacheEvict(value = "transactions:trend", key = "#userId + '-1Y'")
-    })
-    public Transaction create(UUID userId, CreateTransactionDto dto, MultipartFile file) {
+    public TransactionDto create(UUID userId, CreateTransactionDto dto, MultipartFile file) throws ParseException {
         checkAccountAccess(userId, dto.getAccountId(), AccountRole.EDITOR);
 
         Category category = categoryRepository.findById(dto.getCategoryId())
@@ -73,36 +69,27 @@ public class TransactionService {
         }
 
         String attachmentUrl = file != null ? uploadAttachment(file) : null;
-
+        Date transactionDate = this.formatter.parse(dto.getDate());
         Transaction transaction = Transaction.builder()
                 .amount(BigDecimal.valueOf(dto.getAmount()))
-                .date(dto.getDate() != null ? dto.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime() : LocalDateTime.now())
+                .date(dto.getDate() != null ? transactionDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime() : LocalDateTime.now())
                 .description(dto.getDescription())
-                .notes(dto.getNotes())
+                .notes("")
                 .type(dto.getType())
-                .currencyCode(dto.getCurrencyCode() != null ? dto.getCurrencyCode() : "PEN")
+                .currencyCode("PEN")
                 .attachmentUrl(attachmentUrl)
                 .userId(userId)
                 .categoryId(dto.getCategoryId())
                 .accountId(dto.getAccountId())
-                .debtId(dto.getDebtId())
+                .debtId(null)
                 .build();
-
-        return transactionRepository.save(transaction);
+        return transactionMapper.toDto(transactionRepository.save(transaction));
     }
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "transactions:one", key = "#id"),
-            @CacheEvict(value = "transactions:balance", key = "#userId"),
-            @CacheEvict(value = "transactions:category-summary", key = "#userId"),
-            @CacheEvict(value = "transactions:trend", key = "#userId + '-1M'"),
-            @CacheEvict(value = "transactions:trend", key = "#userId + '-3M'"),
-            @CacheEvict(value = "transactions:trend", key = "#userId + '-6M'"),
-            @CacheEvict(value = "transactions:trend", key = "#userId + '-1Y'")
-    })
-    public Transaction update(UUID userId, UUID id, UpdateTransactionDto dto, MultipartFile file) {
-        Transaction transaction = findOne(userId, id);
+    public TransactionDto update(UUID userId, UUID id, UpdateTransactionDto dto, MultipartFile file) throws ParseException {
+        Transaction transaction = transactionRepository.findByIdAndUserId(id, userId)
+                .orElseThrow(() -> new RuntimeException("Transaction not found"));
 
         if (dto.getAccountId() != null) {
             checkAccountAccess(userId, dto.getAccountId(), AccountRole.EDITOR);
@@ -112,23 +99,22 @@ public class TransactionService {
             transaction.setAttachmentUrl(uploadAttachment(file));
         }
 
+        Date transactionDate = this.formatter.parse(dto.getDate());
         if (dto.getAmount() != null) transaction.setAmount(BigDecimal.valueOf(dto.getAmount()));
-        if (dto.getDate() != null)
-            transaction.setDate(dto.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
+        if (dto.getDate() != null) transaction.setDate(transactionDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
         if (dto.getDescription() != null) transaction.setDescription(dto.getDescription());
         if (dto.getNotes() != null) transaction.setNotes(dto.getNotes());
         if (dto.getType() != null) transaction.setType(dto.getType());
-        if (dto.getCurrencyCode() != null) transaction.setCurrencyCode(dto.getCurrencyCode());
         if (dto.getCategoryId() != null) transaction.setCategoryId(dto.getCategoryId());
         if (dto.getAccountId() != null) transaction.setAccountId(dto.getAccountId());
-        if (dto.getDebtId() != null) transaction.setDebtId(dto.getDebtId());
 
-        return transactionRepository.save(transaction);
+        return transactionMapper.toDto(transactionRepository.save(transaction));
     }
 
-    public PaginatedResponseDto<Transaction> findAll(UUID userId, String type, UUID categoryId,
-                                                     UUID accountId, String startDate, String endDate,
-                                                     String search, int page, int limit) {
+    @Transactional(readOnly = true)
+    public PaginatedResponseDto<TransactionDto> findAll(UUID userId, String type, UUID categoryId,
+                                                   UUID accountId, String startDate, String endDate,
+                                                   String search, int page, int limit) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Transaction> cq = cb.createQuery(Transaction.class);
         Root<Transaction> root = cq.from(Transaction.class);
@@ -163,31 +149,28 @@ public class TransactionService {
         countCq.where(predicates.toArray(new Predicate[0]));
         Long total = entityManager.createQuery(countCq).getSingleResult();
 
-        return new PaginatedResponseDto<>(result, total, page, limit, (int) Math.ceil((double) total / limit));
+        List<TransactionDto> dtoList = result.stream()
+                .map(transactionMapper::toDto)
+                .toList();
+
+        return new PaginatedResponseDto<>(dtoList, total, page, limit, (int) Math.ceil((double) total / limit));
     }
 
-    @Cacheable(value = "transactions:one", key = "#id")
-    public Transaction findOne(UUID userId, UUID id) {
-        return transactionRepository.findByIdAndUserId(id, userId)
+    @Transactional(readOnly = true)
+    public TransactionDto findOne(UUID userId, UUID id) {
+        Transaction transaction = transactionRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new RuntimeException("Transaction not found"));
+        return transactionMapper.toDto(transaction);
     }
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "transactions:one", key = "#id"),
-            @CacheEvict(value = "transactions:balance", key = "#userId"),
-            @CacheEvict(value = "transactions:category-summary", key = "#userId"),
-            @CacheEvict(value = "transactions:trend", key = "#userId + '-1M'"),
-            @CacheEvict(value = "transactions:trend", key = "#userId + '-3M'"),
-            @CacheEvict(value = "transactions:trend", key = "#userId + '-6M'"),
-            @CacheEvict(value = "transactions:trend", key = "#userId + '-1Y'")
-    })
     public void remove(UUID userId, UUID id) {
-        findOne(userId, id);
+        transactionRepository.findByIdAndUserId(id, userId)
+                .orElseThrow(() -> new RuntimeException("Transaction not found"));
         transactionRepository.deleteByIdAndUserId(id, userId);
     }
 
-    @Cacheable(value = "transactions:balance", key = "#userId")
+    @Transactional(readOnly = true)
     public Map<String, Object> getBalanceSummary(UUID userId) {
         List<Object[]> summary = transactionRepository.getBalanceSummary(userId);
         double income = 0.0;
@@ -207,7 +190,7 @@ public class TransactionService {
         return res;
     }
 
-    @Cacheable(value = "transactions:category-summary", key = "#userId")
+    @Transactional(readOnly = true)
     public List<Map<String, Object>> getCategorySummary(UUID userId) {
         List<Object[]> summary = transactionRepository.getCategorySummary(userId);
         List<Map<String, Object>> result = new ArrayList<>();
@@ -229,7 +212,7 @@ public class TransactionService {
         return result;
     }
 
-    @Cacheable(value = "transactions:trend", key = "#userId + '-' + #range")
+    @Transactional(readOnly = true)
     public List<Map<String, Object>> getMonthlyTrend(UUID userId, String range) {
         if (range == null) range = "6M";
         int monthsToFetch = resolveMonthRange(range);

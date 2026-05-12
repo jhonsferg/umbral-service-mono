@@ -23,7 +23,7 @@ public class Account extends AuditableEntity {
     @Column(name = "owner_id", nullable = false)
     private UUID ownerId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "owner_id", insertable = false, updatable = false)
     private User owner;
 
@@ -59,6 +59,17 @@ public class Account extends AuditableEntity {
     @Builder.Default
     @Column(name = "\"order\"", nullable = false)
     private Integer order = 0;
+
+    @Column(nullable = false, precision = 19, scale = 4)
+    @Builder.Default
+    private java.math.BigDecimal balance = java.math.BigDecimal.ZERO;
+
+    @Column(name = "bank_id")
+    private UUID bankId;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "bank_id", insertable = false, updatable = false)
+    private Bank bank;
 
     @SoftDelete
     @Column

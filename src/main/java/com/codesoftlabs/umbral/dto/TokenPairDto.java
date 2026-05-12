@@ -14,7 +14,6 @@ import lombok.NoArgsConstructor;
 public class TokenPairDto {
     private String accessToken;
     private String refreshToken;
-    private UserDto user;
     private Boolean requireMfa;
     private String userId;
     private String message;

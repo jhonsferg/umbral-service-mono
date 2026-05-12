@@ -1,7 +1,7 @@
 package com.codesoftlabs.umbral.controller;
 
 import com.codesoftlabs.umbral.dto.CreateAssetDto;
-import com.codesoftlabs.umbral.entity.Asset;
+import com.codesoftlabs.umbral.dto.response.AssetResponseDto;
 import com.codesoftlabs.umbral.service.AssetsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -31,12 +31,12 @@ public class AssetsController {
     @PostMapping
     @Operation(summary = "Create a new asset", description = "Creates a new asset entry in the user's portfolio")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Asset created successfully", content = @Content(schema = @Schema(implementation = Asset.class))),
+            @ApiResponse(responseCode = "200", description = "Asset created successfully", content = @Content(schema = @Schema(implementation = AssetResponseDto.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input provided"),
             @ApiResponse(responseCode = "401", description = "Unauthorized - authentication required"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<Asset> create(@RequestAttribute("userId") UUID userId, @Valid @RequestBody CreateAssetDto dto) {
+    public ResponseEntity<AssetResponseDto> create(@RequestAttribute("userId") UUID userId, @Valid @RequestBody CreateAssetDto dto) {
         return ResponseEntity.ok(assetsService.create(userId, dto));
     }
 
@@ -65,27 +65,27 @@ public class AssetsController {
     @GetMapping("/{id}")
     @Operation(summary = "Get a specific asset by ID", description = "Retrieves details of a specific asset in the portfolio")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Asset retrieved successfully", content = @Content(schema = @Schema(implementation = Asset.class))),
+            @ApiResponse(responseCode = "200", description = "Asset retrieved successfully", content = @Content(schema = @Schema(implementation = AssetResponseDto.class))),
             @ApiResponse(responseCode = "401", description = "Unauthorized - authentication required"),
             @ApiResponse(responseCode = "403", description = "Forbidden - insufficient permissions"),
             @ApiResponse(responseCode = "404", description = "Asset not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<Asset> findOne(@RequestAttribute("userId") UUID userId, @PathVariable @Parameter(description = "Asset ID") UUID id) {
-        return ResponseEntity.ok(assetsService.findOne(userId, id));
+    public ResponseEntity<AssetResponseDto> findOne(@RequestAttribute("userId") UUID userId, @PathVariable @Parameter(description = "Asset ID") UUID id) {
+        return ResponseEntity.ok(assetsService.findOneDto(userId, id));
     }
 
     @PatchMapping("/{id}")
     @Operation(summary = "Update an asset", description = "Updates details of an existing asset in the portfolio")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Asset updated successfully", content = @Content(schema = @Schema(implementation = Asset.class))),
+            @ApiResponse(responseCode = "200", description = "Asset updated successfully", content = @Content(schema = @Schema(implementation = AssetResponseDto.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input provided"),
             @ApiResponse(responseCode = "401", description = "Unauthorized - authentication required"),
             @ApiResponse(responseCode = "403", description = "Forbidden - insufficient permissions"),
             @ApiResponse(responseCode = "404", description = "Asset not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<Asset> update(@RequestAttribute("userId") UUID userId, @PathVariable @Parameter(description = "Asset ID") UUID id, @Valid @RequestBody CreateAssetDto dto) {
+    public ResponseEntity<AssetResponseDto> update(@RequestAttribute("userId") UUID userId, @PathVariable @Parameter(description = "Asset ID") UUID id, @Valid @RequestBody CreateAssetDto dto) {
         return ResponseEntity.ok(assetsService.update(userId, id, dto));
     }
 

@@ -23,14 +23,14 @@ public class Invitation extends AuditableEntity {
     @Column(name = "inviter_id", nullable = false)
     private UUID inviterId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "inviter_id", insertable = false, updatable = false)
     private User inviter;
 
     @Column(name = "invitee_id")
     private UUID inviteeId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "invitee_id", insertable = false, updatable = false)
     private User invitee;
 
@@ -40,7 +40,7 @@ public class Invitation extends AuditableEntity {
     @Column(name = "account_id", nullable = false)
     private UUID accountId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "account_id", insertable = false, updatable = false)
     private Account account;
 

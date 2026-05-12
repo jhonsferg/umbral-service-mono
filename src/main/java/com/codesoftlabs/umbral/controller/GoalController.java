@@ -1,7 +1,7 @@
 package com.codesoftlabs.umbral.controller;
 
 import com.codesoftlabs.umbral.dto.CreateGoalDto;
-import com.codesoftlabs.umbral.entity.Goal;
+import com.codesoftlabs.umbral.dto.response.GoalResponseDto;
 import com.codesoftlabs.umbral.service.GoalsService;
 import com.codesoftlabs.umbral.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,12 +32,12 @@ public class GoalController {
     @PostMapping
     @Operation(summary = "Create a new financial goal", description = "Creates a new savings goal for the current user")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Goal created successfully", content = @Content(schema = @Schema(implementation = Goal.class))),
+            @ApiResponse(responseCode = "200", description = "Goal created successfully", content = @Content(schema = @Schema(implementation = GoalResponseDto.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input provided"),
             @ApiResponse(responseCode = "401", description = "Unauthorized - authentication required"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<Goal> create(@RequestAttribute("userId") UUID userId, @Valid @RequestBody CreateGoalDto dto) {
+    public ResponseEntity<GoalResponseDto> create(@RequestAttribute("userId") UUID userId, @Valid @RequestBody CreateGoalDto dto) {
         return ResponseEntity.ok(goalsService.create(userId, dto));
     }
 
@@ -55,27 +55,27 @@ public class GoalController {
     @GetMapping("/{id}")
     @Operation(summary = "Get a specific financial goal", description = "Retrieves details of a specific goal by ID")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Goal retrieved successfully", content = @Content(schema = @Schema(implementation = Goal.class))),
+            @ApiResponse(responseCode = "200", description = "Goal retrieved successfully", content = @Content(schema = @Schema(implementation = GoalResponseDto.class))),
             @ApiResponse(responseCode = "401", description = "Unauthorized - authentication required"),
             @ApiResponse(responseCode = "403", description = "Forbidden - insufficient permissions"),
             @ApiResponse(responseCode = "404", description = "Goal not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<Goal> findOne(@RequestAttribute("userId") UUID userId, @PathVariable @Parameter(description = "Goal ID") UUID id) {
-        return ResponseEntity.ok(goalsService.findOne(userId, id));
+    public ResponseEntity<GoalResponseDto> findOne(@RequestAttribute("userId") UUID userId, @PathVariable @Parameter(description = "Goal ID") UUID id) {
+        return ResponseEntity.ok(goalsService.findOneDto(userId, id));
     }
 
     @PatchMapping("/{id}")
     @Operation(summary = "Update a financial goal", description = "Updates an existing goal record")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Goal updated successfully", content = @Content(schema = @Schema(implementation = Goal.class))),
+            @ApiResponse(responseCode = "200", description = "Goal updated successfully", content = @Content(schema = @Schema(implementation = GoalResponseDto.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input provided"),
             @ApiResponse(responseCode = "401", description = "Unauthorized - authentication required"),
             @ApiResponse(responseCode = "403", description = "Forbidden - insufficient permissions"),
             @ApiResponse(responseCode = "404", description = "Goal not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<Goal> update(@RequestAttribute("userId") UUID userId, @PathVariable @Parameter(description = "Goal ID") UUID id, @Valid @RequestBody CreateGoalDto dto) {
+    public ResponseEntity<GoalResponseDto> update(@RequestAttribute("userId") UUID userId, @PathVariable @Parameter(description = "Goal ID") UUID id, @Valid @RequestBody CreateGoalDto dto) {
         return ResponseEntity.ok(goalsService.update(userId, id, dto));
     }
 

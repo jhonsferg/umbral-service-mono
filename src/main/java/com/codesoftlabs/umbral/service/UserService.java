@@ -2,11 +2,9 @@ package com.codesoftlabs.umbral.service;
 
 import com.codesoftlabs.umbral.dto.CreateUserDto;
 import com.codesoftlabs.umbral.dto.UpdateUserDto;
+import com.codesoftlabs.umbral.dto.UserDto;
 import com.codesoftlabs.umbral.entity.User;
 import com.codesoftlabs.umbral.repository.UserRepository;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -40,13 +38,35 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    @Cacheable(value = "usersById", key = "#id")
+    @Transactional(readOnly = true)
+    public UserDto getUserProfile(UUID id) {
+        User userDb = this.findById(id);
+        return UserDto.builder()
+                .id(userDb.getId())
+                .email(userDb.getEmail())
+                .firstName(userDb.getFirstName())
+                .lastName(userDb.getLastName())
+                .avatarUrl(userDb.getAvatarUrl())
+                .phoneNumber(userDb.getPhoneNumber())
+                .locale(userDb.getLocale())
+                .timezone(userDb.getTimezone())
+                .defaultCurrency(userDb.getDefaultCurrency())
+                .isActive(userDb.getIsActive())
+                .mfaEnabled(userDb.getMfaEnabled())
+                .lastLogin(userDb.getLastLogin())
+                .emailVerifiedAt(userDb.getEmailVerifiedAt())
+                .createdAt(userDb.getCreatedAt())
+                .updatedAt(userDb.getUpdatedAt())
+                .build();
+    }
+
+    @Transactional(readOnly = true)
     public User findById(UUID id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
     }
 
-    @Cacheable(value = "usersByEmail", key = "#email")
+    @Transactional(readOnly = true)
     public User findByEmail(String email) {
         return userRepository.findByEmail(email).orElse(null);
     }
@@ -60,11 +80,7 @@ public class UserService {
     }
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "usersById", key = "#id"),
-            @CacheEvict(value = "usersByEmail", allEntries = true)
-    })
-    public User update(UUID id, UpdateUserDto updateDto) {
+    public UserDto update(UUID id, UpdateUserDto updateDto) {
         User user = findById(id);
 
         if (updateDto.getPassword() != null) {
@@ -75,14 +91,10 @@ public class UserService {
             user.setMfaSecret(updateDto.getMfaSecret());
         }
 
-        return userRepository.save(user);
+        return getUserProfile(userRepository.save(user).getId());
     }
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "usersById", key = "#id"),
-            @CacheEvict(value = "usersByEmail", allEntries = true)
-    })
     public User markAsActive(UUID id) {
         User user = findById(id);
         user.setIsActive(true);

@@ -130,8 +130,8 @@ public class SessionService {
         log.info("Getting current local date time");
         LocalDateTime now = LocalDateTime.now();
 
-        log.info("Comparing datetime: {}", !session.getAccessExpiresAt().isBefore(now));
-        return !session.getAccessExpiresAt().isBefore(now);
+        log.info("Comparing datetime: {}", !session.getRefreshExpiresAt().isBefore(now));
+        return !session.getRefreshExpiresAt().isBefore(now);
     }
 
     /**

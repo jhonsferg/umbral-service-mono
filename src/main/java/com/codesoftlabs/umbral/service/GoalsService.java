@@ -1,7 +1,9 @@
 package com.codesoftlabs.umbral.service;
 
 import com.codesoftlabs.umbral.dto.CreateGoalDto;
+import com.codesoftlabs.umbral.dto.response.GoalResponseDto;
 import com.codesoftlabs.umbral.entity.Goal;
+import com.codesoftlabs.umbral.mapper.GoalMapper;
 import com.codesoftlabs.umbral.repository.GoalRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,9 +21,10 @@ import java.util.stream.Collectors;
 public class GoalsService {
 
     private final GoalRepository goalRepository;
+    private final GoalMapper goalMapper;
 
     @Transactional
-    public Goal create(UUID userId, CreateGoalDto dto) {
+    public GoalResponseDto create(UUID userId, CreateGoalDto dto) {
         Goal goal = new Goal();
         goal.setUserId(userId);
         goal.setName(dto.getName());
@@ -30,12 +33,16 @@ public class GoalsService {
         goal.setCurrency(dto.getCurrencyCode() != null ? dto.getCurrencyCode() : "PEN");
         goal.setTargetDate(dto.getDeadline() != null ? dto.getDeadline().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime() : null);
 
-        return goalRepository.save(goal);
+        return goalMapper.toDto(goalRepository.save(goal));
     }
 
     public List<Map<String, Object>> findAll(UUID userId) {
         List<Goal> goals = goalRepository.findByUserIdOrderByCreatedAtDesc(userId);
         return goals.stream().map(this::computeGoal).collect(Collectors.toList());
+    }
+
+    public GoalResponseDto findOneDto(UUID userId, UUID id) {
+        return goalMapper.toDto(findOne(userId, id));
     }
 
     public Goal findOne(UUID userId, UUID id) {
@@ -44,7 +51,7 @@ public class GoalsService {
     }
 
     @Transactional
-    public Goal update(UUID userId, UUID id, CreateGoalDto dto) {
+    public GoalResponseDto update(UUID userId, UUID id, CreateGoalDto dto) {
         Goal goal = findOne(userId, id);
 
         if (dto.getName() != null) goal.setName(dto.getName());
@@ -54,7 +61,7 @@ public class GoalsService {
         if (dto.getDeadline() != null)
             goal.setTargetDate(dto.getDeadline().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime());
 
-        return goalRepository.save(goal);
+        return goalMapper.toDto(goalRepository.save(goal));
     }
 
     @Transactional

@@ -10,6 +10,7 @@ import com.codesoftlabs.umbral.security.CustomUserDetails;
 import com.codesoftlabs.umbral.service.AuthService;
 import com.codesoftlabs.umbral.service.MfaService;
 import com.codesoftlabs.umbral.service.SessionService;
+import com.codesoftlabs.umbral.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -38,12 +39,14 @@ public class AuthController {
     private final UserRepository userRepository;
     private final MfaService mfaService;
     private final SessionService sessionService;
+    private final UserService userService;
 
-    public AuthController(AuthService authService, UserRepository userRepository, MfaService mfaService, SessionService sessionService) {
+    public AuthController(AuthService authService, UserRepository userRepository, MfaService mfaService, SessionService sessionService, UserService userService) {
         this.authService = authService;
         this.userRepository = userRepository;
         this.mfaService = mfaService;
         this.sessionService = sessionService;
+        this.userService = userService;
     }
 
     @GetMapping("/health")
@@ -150,16 +153,16 @@ public class AuthController {
     @GetMapping("/profile")
     @Operation(summary = "Get user profile", description = "Retrieves the profile information of the authenticated user")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Profile retrieved successfully", content = @Content(schema = @Schema(implementation = User.class))),
+            @ApiResponse(responseCode = "200", description = "Profile retrieved successfully", content = @Content(schema = @Schema(implementation = UserDto.class))),
             @ApiResponse(responseCode = "401", description = "Unauthorized - authentication required"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<?> getProfile(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<UserDto> getProfile(@AuthenticationPrincipal CustomUserDetails userDetails) {
         if (userDetails == null) {
             throw new UnauthorizedException("Authentication required");
         }
-        return ResponseEntity.ok(userDetails.user());
+        return ResponseEntity.ok(userService.getUserProfile(userDetails.user().getId()));
     }
 
     @PostMapping("/mfa/setup")
@@ -170,7 +173,7 @@ public class AuthController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<?> setupMfa(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<Map<String, String>> setupMfa(@AuthenticationPrincipal CustomUserDetails userDetails) {
         if (userDetails == null) {
             throw new UnauthorizedException("Authentication required");
         }
@@ -196,7 +199,7 @@ public class AuthController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<?> enableMfa(@AuthenticationPrincipal CustomUserDetails userDetails, @Valid @RequestBody MfaCodeRequestDto dto) {
+    public ResponseEntity<Object> enableMfa(@AuthenticationPrincipal CustomUserDetails userDetails, @Valid @RequestBody MfaCodeRequestDto dto) {
         if (userDetails == null) {
             throw new UnauthorizedException("Authentication required");
         }
@@ -211,7 +214,7 @@ public class AuthController {
 
         user.setMfaEnabled(true);
         userRepository.save(user);
-        return ResponseEntity.ok(user);
+        return ResponseEntity.ok(userService.getUserProfile(user.getId()));
     }
 
     @PostMapping("/mfa/disable")
@@ -223,7 +226,7 @@ public class AuthController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<?> disableMfa(@AuthenticationPrincipal CustomUserDetails userDetails, @Valid @RequestBody MfaCodeRequestDto dto) {
+    public ResponseEntity<Object> disableMfa(@AuthenticationPrincipal CustomUserDetails userDetails, @Valid @RequestBody MfaCodeRequestDto dto) {
         if (userDetails == null) {
             throw new UnauthorizedException("Authentication required");
         }
@@ -236,7 +239,7 @@ public class AuthController {
         user.setMfaEnabled(false);
         user.setMfaSecret(null);
         userRepository.save(user);
-        return ResponseEntity.ok(user);
+        return ResponseEntity.ok(userService.getUserProfile(user.getId()));
     }
 
     @GetMapping("/sessions")

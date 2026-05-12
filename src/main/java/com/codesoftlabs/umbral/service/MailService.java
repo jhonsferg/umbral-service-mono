@@ -8,8 +8,6 @@ import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -68,13 +66,11 @@ public class MailService {
         }
     }
 
-    @Cacheable(value = "emailTemplates", key = "#type.name()")
     public EmailTemplate getTemplate(EmailTemplateType type) {
         return emailTemplateRepository.findByTypeAndIsActiveTrue(type)
                 .orElseThrow(() -> new RuntimeException("Email template not found for type: " + type));
     }
 
-    @CacheEvict(value = "emailTemplates", key = "#type.name()")
     public void invalidateTemplateCache(EmailTemplateType type) {
     }
 

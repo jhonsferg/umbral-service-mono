@@ -1,8 +1,8 @@
 package com.codesoftlabs.umbral.controller;
 
 import com.codesoftlabs.umbral.dto.CreateRecurringTransactionDto;
+import com.codesoftlabs.umbral.dto.RecurringTransactionDto;
 import com.codesoftlabs.umbral.dto.UpdateRecurringTransactionDto;
-import com.codesoftlabs.umbral.entity.RecurringTransaction;
 import com.codesoftlabs.umbral.service.RecurringTransactionService;
 import com.codesoftlabs.umbral.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,24 +34,24 @@ public class RecurringTransactionController {
     @PostMapping
     @Operation(summary = "Create a new recurring transaction rule", description = "Creates a new rule for automatically generating recurring transactions")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Recurring transaction rule created successfully", content = @Content(schema = @Schema(implementation = RecurringTransaction.class))),
+            @ApiResponse(responseCode = "200", description = "Recurring transaction rule created successfully", content = @Content(schema = @Schema(implementation = RecurringTransactionDto.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input provided"),
             @ApiResponse(responseCode = "401", description = "Unauthorized - authentication required"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public RecurringTransaction create(@RequestAttribute("userId") UUID userId, @Valid @RequestBody CreateRecurringTransactionDto dto) {
-        return recurringTransactionService.create(userId, dto);
+    public ResponseEntity<RecurringTransactionDto> create(@RequestAttribute("userId") UUID userId, @Valid @RequestBody CreateRecurringTransactionDto dto) {
+        return ResponseEntity.ok(recurringTransactionService.create(userId, dto));
     }
 
     @GetMapping
     @Operation(summary = "List all recurring transaction rules", description = "Retrieves all recurring transaction rules for the current user")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved recurring transaction rules", content = @Content(schema = @Schema(implementation = RecurringTransaction.class))),
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved recurring transaction rules", content = @Content(schema = @Schema(implementation = RecurringTransactionDto.class))),
             @ApiResponse(responseCode = "401", description = "Unauthorized - authentication required"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public List<RecurringTransaction> findAll(@RequestAttribute("userId") UUID userId) {
-        return recurringTransactionService.findAll(userId);
+    public ResponseEntity<List<RecurringTransactionDto>> findAll(@RequestAttribute("userId") UUID userId) {
+        return ResponseEntity.ok(recurringTransactionService.findAll(userId));
     }
 
     @DeleteMapping("/{id}")
@@ -62,22 +63,23 @@ public class RecurringTransactionController {
             @ApiResponse(responseCode = "404", description = "Recurring transaction rule not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public void remove(@RequestAttribute("userId") UUID userId, @PathVariable @Parameter(description = "Recurring transaction rule ID") UUID id) {
+    public ResponseEntity<Void> remove(@RequestAttribute("userId") UUID userId, @PathVariable @Parameter(description = "Recurring transaction rule ID") UUID id) {
         recurringTransactionService.remove(userId, id);
+        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}")
     @Operation(summary = "Update a recurring transaction rule", description = "Updates an existing recurring transaction rule")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Recurring transaction rule updated successfully", content = @Content(schema = @Schema(implementation = RecurringTransaction.class))),
+            @ApiResponse(responseCode = "200", description = "Recurring transaction rule updated successfully", content = @Content(schema = @Schema(implementation = RecurringTransactionDto.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input provided"),
             @ApiResponse(responseCode = "401", description = "Unauthorized - authentication required"),
             @ApiResponse(responseCode = "403", description = "Forbidden - insufficient permissions"),
             @ApiResponse(responseCode = "404", description = "Recurring transaction rule not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public RecurringTransaction update(@RequestAttribute("userId") UUID userId, @PathVariable @Parameter(description = "Recurring transaction rule ID") UUID id, @Valid @RequestBody UpdateRecurringTransactionDto dto) {
-        return recurringTransactionService.update(userId, id, dto);
+    public ResponseEntity<RecurringTransactionDto> update(@RequestAttribute("userId") UUID userId, @PathVariable @Parameter(description = "Recurring transaction rule ID") UUID id, @Valid @RequestBody UpdateRecurringTransactionDto dto) {
+        return ResponseEntity.ok(recurringTransactionService.update(userId, id, dto));
     }
 
     @PostMapping("/process")
@@ -86,7 +88,8 @@ public class RecurringTransactionController {
             @ApiResponse(responseCode = "200", description = "Recurring transaction processor executed successfully"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public void process() {
+    public ResponseEntity<Void> process() {
         recurringTransactionService.processRecurringTransactions();
+        return ResponseEntity.ok().build();
     }
 }
