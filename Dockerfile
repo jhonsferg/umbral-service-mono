@@ -61,7 +61,7 @@
 # Compiles the application and extracts Spring Boot layers.
 # This stage uses a full Gradle + JDK image; it is never shipped to production.
 # ==============================================================================
-FROM gradle:8.10-jdk21-alpine AS builder
+FROM gradle:9.6.1-jdk25-alpine AS builder
 
 # BUILD_PROFILE controls which Gradle profile is activated during packaging.
 # Defaults to 'prod'; override at build time with:
@@ -140,7 +140,7 @@ RUN apk add --no-cache wget && \
 #   - Alpine Linux: minimal attack surface, small base layer (~5MB)
 #   - Temurin (Adoptium): production-grade, TCK-verified OpenJDK distribution
 # ==============================================================================
-FROM eclipse-temurin:21-jre-alpine AS runner
+FROM eclipse-temurin:25-jre-alpine AS runner
 
 # ── Non-root user ──────────────────────────────────────────────────────────────
 # Running as root inside a container is a security risk:

@@ -3,9 +3,9 @@
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Java](https://img.shields.io/badge/java-21-red)
+![Java](https://img.shields.io/badge/java-25-red)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.5-green)
-![Gradle](https://img.shields.io/badge/Gradle-8.10-blue)
+![Gradle](https://img.shields.io/badge/Gradle-9.6.1-blue)
 
 Plataforma de gestion financiera empresarial construida con **Spring Boot 4.0.5**, **Spring Security**, **JWT**, **PostgreSQL** y **Redis**. Aplicacion backend completa con autenticacion multi-factor, gestion de transacciones, presupuestos, metas financieras y mas.
 
@@ -146,8 +146,8 @@ Plataforma de gestion financiera empresarial construida con **Spring Boot 4.0.5*
 ## Requisitos Previos
 
 ### Minimos
-- **Java 21+** ([Descargar](https://www.oracle.com/java/technologies/downloads/#java21))
-- **Gradle 8.10+** ([Descargar](https://gradle.org/))
+- **Java 25+** ([Descargar](https://www.oracle.com/java/technologies/downloads/))
+- **Gradle 9.6.1+** ([Descargar](https://gradle.org/))
 - **PostgreSQL 12+** ([Descargar](https://www.postgresql.org/))
 - **Git**
 
