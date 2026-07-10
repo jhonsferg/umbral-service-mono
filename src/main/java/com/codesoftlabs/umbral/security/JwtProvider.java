@@ -5,13 +5,12 @@ import com.codesoftlabs.umbral.util.TimeUtils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,7 +22,7 @@ import java.util.UUID;
 public class JwtProvider {
     private JwtBean jwtBean;
 
-    private Key getSigningKey() {
+    private SecretKey getSigningKey() {
         byte[] keyBytes = jwtBean.getAccessSecret().getBytes();
         return Keys.hmacShaKeyFor(keyBytes);
     }
@@ -47,11 +46,11 @@ public class JwtProvider {
         Date expiryDate = new Date(now.getTime() + expirationTime);
 
         return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(subject)
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .claims(claims)
+                .subject(subject)
+                .issuedAt(now)
+                .expiration(expiryDate)
+                .signWith(getSigningKey())
                 .compact();
     }
 
@@ -72,10 +71,10 @@ public class JwtProvider {
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder()
-                    .setSigningKey(getSigningKey())
+            Jwts.parser()
+                    .verifyWith(getSigningKey())
                     .build()
-                    .parseClaimsJws(token);
+                    .parseSignedClaims(token);
             return true;
         } catch (Exception e) {
             log.error("JWT validation failed: {}", e.getMessage());
@@ -93,11 +92,11 @@ public class JwtProvider {
     }
 
     private Claims getClaimsFromToken(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     public long getExpirationTime(String token) {
@@ -112,22 +111,22 @@ public class JwtProvider {
         return Math.max(0, remainingTime / 1000);
     }
 
-    private Key getAccessKey() {
+    private SecretKey getAccessKey() {
         return Keys.hmacShaKeyFor(jwtBean.getAccessSecret().getBytes());
     }
 
     public String getUserIdFromAccessToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(getAccessKey())
+        Claims claims = Jwts.parser()
+                .verifyWith(getAccessKey())
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
         return claims.getSubject();
     }
 
     public boolean validateAccessToken(String authToken) {
         try {
-            Jwts.parserBuilder().setSigningKey(getAccessKey()).build().parseClaimsJws(authToken);
+            Jwts.parser().verifyWith(getAccessKey()).build().parseSignedClaims(authToken);
             return true;
         } catch (JwtException | IllegalArgumentException ex) {
             return false;

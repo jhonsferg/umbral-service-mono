@@ -13,14 +13,14 @@ java {
     }
 }
 
+repositories {
+    mavenCentral()
+}
+
 configurations {
     compileOnly {
         extendsFrom(configurations.annotationProcessor.get())
     }
-}
-
-repositories {
-    mavenCentral()
 }
 
 dependencies {
@@ -79,12 +79,4 @@ dependencies {
 
 tasks.withType<Test> {
     useJUnitPlatform()
-}
-
-// Spring Boot profiles support
-if (project.hasProperty("profile")) {
-    val profile = project.property("profile") as String
-    springBoot {
-        mainFunction.set("run")
-    }
 }
