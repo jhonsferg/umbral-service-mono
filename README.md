@@ -1,166 +1,170 @@
-# 🚀 Umbral Spring Boot Backend
+# Umbral Spring Boot Backend
 
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Java](https://img.shields.io/badge/java-21-red)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.5-green)
+![Gradle](https://img.shields.io/badge/Gradle-8.10-blue)
 
-Plataforma de gestión financiera empresarial construida con **Spring Boot 4.0.5**, **Spring Security**, **JWT**, **PostgreSQL** y **Redis**. Aplicación backend completa con autenticación multi-factor, gestión de transacciones, presupuestos, metas financieras y más.
+Plataforma de gestion financiera empresarial construida con **Spring Boot 4.0.5**, **Spring Security**, **JWT**, **PostgreSQL** y **Redis**. Aplicacion backend completa con autenticacion multi-factor, gestion de transacciones, presupuestos, metas financieras y mas.
 
 ---
 
-## 📋 Tabla de Contenidos
+## Tabla de Contenidos
 
-- [Características](#características)
+- [Caracteristicas](#caracteristicas)
 - [Requisitos Previos](#requisitos-previos)
-- [Instalación Rápida](#instalación-rápida)
+- [Instalacion Rapida](#instalacion-rapida)
 - [Estructura del Proyecto](#estructura-del-proyecto)
-- [Configuración](#configuración)
+- [Configuracion](#configuracion)
 - [Uso de la API](#uso-de-la-api)
-- [Documentación OpenAPI](#documentación-openapi)
-- [Autenticación](#autenticación)
+- [Documentacion OpenAPI](#documentacion-openapi)
+- [Autenticacion](#autenticacion)
 - [Perfiles de Entorno](#perfiles-de-entorno)
 - [Base de Datos](#base-de-datos)
 - [Desarrollo](#desarrollo)
 - [Despliegue](#despliegue)
-- [Solución de Problemas](#solución-de-problemas)
+- [Solucion de Problemas](#solucion-de-problemas)
 - [Seguridad](#seguridad)
-- [Contribuir](#contribuir)
 
 ---
 
-## ✨ Características
+## Caracteristicas
 
-### Autenticación & Seguridad
-✅ **JWT con tokens duales**
+### Autenticacion y Seguridad
+
+**JWT con tokens duales**
 - Access tokens: 24 horas de validez
-- Refresh tokens: 7 días de validez
+- Refresh tokens: 7 dias de validez
 - Signing: HS512 algorithm
 
-✅ **Multi-Factor Authentication (MFA)**
+**Multi-Factor Authentication (MFA)**
 - TOTP (Time-based One-Time Password)
 - QR code generation para apps autenticadora
 - Backup codes support
 
-✅ **Gestión de Sesiones**
+**Gestion de Sesiones**
 - Device tracking y fingerprinting
 - IP address validation
 - Session revocation
 - Logout multidevice
 
-✅ **Control de Acceso**
+**Control de Acceso**
 - Role-based access control (RBAC)
 - Tenant isolation (multi-usuario)
-- Método-level security
+- Metodo-level security
 
-### Gestión Financiera
-✅ **Cuentas Bancarias**
+### Gestion Financiera
+
+**Cuentas Bancarias**
 - CRUD completo
 - Roles de acceso (OWNER, EDITOR, VIEWER)
 - Compartir cuentas entre usuarios
 
-✅ **Transacciones**
-- Creación y edición de transacciones
-- Filtrado avanzado (fecha, categoría, cuenta, monto)
-- Búsqueda por descripción
-- Paginación automática
+**Transacciones**
+- Creacion y edicion de transacciones
+- Filtrado avanzado (fecha, categoria, cuenta, monto)
+- Busqueda por descripcion
+- Paginacion automatica
 
-✅ **Categorías**
+**Categorias**
 - Ingreso/Gasto
-- Cacheo para performance
-- Gestión por usuario
+- Cache para performance
+- Gestion por usuario
 
-✅ **Presupuestos**
-- Crear presupuestos por categoría
-- Alertas de límite
+**Presupuestos**
+- Crear presupuestos por categoria
+- Alertas de limite
 - Comparativa gasto vs presupuesto
 
-✅ **Metas Financieras**
+**Metas Financieras**
 - Crear metas con fecha objetivo
 - Seguimiento de progreso
-- Cálculo automático de faltante
+- Calculo automatico de faltante
 
-✅ **Deudas**
+**Deudas**
 - Registro de deudas
 - Seguimiento de pagos
-- Cálculo de intereses
+- Calculo de intereses
 
-✅ **Activos**
+**Activos**
 - Inventario de activos
-- Valuación
-- Depreciación
+- Valuacion
+- Depreciacion
 
-✅ **Transacciones Recurrentes**
+**Transacciones Recurrentes**
 - Plantillas reutilizables
-- Generación automática
+- Generacion automatica
 - Historial de transacciones
 
-### Análisis & Reportes
-✅ **Analytics**
+### Analisis y Reportes
+
+**Analytics**
 - Resumen de balances (ingreso/gasto)
-- Análisis por categoría
+- Analisis por categoria
 - Tendencias mensuales
 - Predicciones
 
-✅ **Activity Logging**
-- Auditoría completa de acciones
-- Timestamps automáticos
+**Activity Logging**
+- Auditoria completa de acciones
+- Timestamps automaticos
 - Trazabilidad de cambios
 
-✅ **Notificaciones**
+**Notificaciones**
 - Email con templates
 - Push notifications ready
 - Alertas de presupuesto
 
 ### Infraestructura
-✅ **Multi-Environment**
+
+**Multi-Environment**
 - Local (desarrollo con debug)
 - Dev (servidor de desarrollo)
 - Test (H2 en memoria)
 - Prod (SSL, hardened)
 
-✅ **Caching**
-- Redis para caché distribuida
+**Caching**
+- Redis para cache distribuida
 - Local cache fallback
-- Cache invalidation automática
+- Cache invalidation automatica
 
-✅ **Database**
+**Database**
 - PostgreSQL 12+
 - JPA/Hibernate ORM
 - Soft delete pattern
-- Audit fields automáticos
+- Audit fields automaticos
 
-✅ **API Documentation**
+**API Documentation**
 - OpenAPI 3.0 / Swagger
 - Interactive Swagger UI
-- Habilitación por perfil
-- Deshabilitado en producción
+- Habilitacion por perfil
+- Deshabilitado en produccion
 
 ---
 
-## 🔧 Requisitos Previos
+## Requisitos Previos
 
-### Mínimos
+### Minimos
 - **Java 21+** ([Descargar](https://www.oracle.com/java/technologies/downloads/#java21))
-- **Maven 3.8+** ([Descargar](https://maven.apache.org/))
+- **Gradle 8.10+** ([Descargar](https://gradle.org/))
 - **PostgreSQL 12+** ([Descargar](https://www.postgresql.org/))
 - **Git**
 
 ### Opcionales (Recomendado)
-- **Redis 6+** - Para caching distribuida
-- **Docker** - Para containerización
+- **Redis 6+** - Para cache distribuida
+- **Docker** - Para containerizacion
 - **Postman** - Para testing de APIs
-- **pgAdmin** - Para administración de BD
+- **pgAdmin** - Para administracion de BD
 
 ---
 
-## 🚀 Instalación Rápida
+## Instalacion Rapida
 
 ### 1. Clonar el repositorio
 ```bash
-git clone https://github.com/jhonsferg/Umbral.git
-cd Umbral/umbral-backend-spring
+git clone https://github.com/jhonsferg/umbral-service-mono.git
+cd umbral-service-mono
 ```
 
 ### 2. Configurar variables de entorno
@@ -177,7 +181,7 @@ notepad .env
 nano .env
 ```
 
-**Configuración mínima:**
+**Configuracion minima:**
 ```env
 # Base de datos
 DB_HOST=localhost
@@ -186,7 +190,7 @@ DB_NAME=umbral
 DB_USER=postgres
 DB_PASSWORD=your_password
 
-# JWT (cambiar en producción)
+# JWT (cambiar en produccion)
 JWT_ACCESS_SECRET=your-very-long-secret-key-change-in-production-min-64-chars
 JWT_REFRESH_SECRET=your-very-long-refresh-secret-key-change-in-production-min-64-chars
 
@@ -215,87 +219,92 @@ sudo -u postgres psql -c "ALTER USER umbral_user WITH PASSWORD 'your_password';"
 ### 4. Compilar y ejecutar
 ```bash
 # Compilar
-mvn clean install
+./gradlew build
 
 # Ejecutar en desarrollo
-mvn spring-boot:run
+./gradlew bootRun
 
-# Ejecutar con perfil específico
-mvn spring-boot:run -Dspring-boot.run.arguments="--spring.profiles.active=local"
+# Ejecutar con perfil especifico
+./gradlew bootRun -Pprofile=local
 ```
 
-### 5. Acceder a la aplicación
+### 5. Acceder a la aplicacion
 ```
-API Swagger UI: http://localhost:3001/api/v1/docs
-Health Check: http://localhost:3001/actuator/health
-API Docs JSON: http://localhost:3001/api/v1/v3/api-docs
+API Swagger UI: http://localhost:8080/api/v1/docs
+Health Check: http://localhost:8080/actuator/health
+API Docs JSON: http://localhost:8080/api/v1/v3/api-docs
 ```
 
 ---
 
-## 📁 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
-umbral-backend-spring/
+umbral-service-mono/
 ├── src/
 │   ├── main/
 │   │   ├── java/com/codesoftlabs/umbral/
 │   │   │   ├── UmbralApplication.java         # Punto de entrada
 │   │   │   ├── config/                         # Configuraciones Spring
-│   │   │   ├── controller/                     # REST Controllers (15)
-│   │   │   ├── service/                        # Business Logic (19)
-│   │   │   ├── repository/                     # Data Access (14)
-│   │   │   ├── entity/                         # JPA Entities (18)
+│   │   │   ├── controller/                     # REST Controllers (17)
+│   │   │   ├── service/                        # Business Logic (21)
+│   │   │   ├── repository/                     # Data Access
+│   │   │   ├── entity/                         # JPA Entities (23)
 │   │   │   ├── dto/                            # Data Transfer Objects
 │   │   │   ├── exception/                      # Custom Exceptions
 │   │   │   ├── security/                       # JWT & Spring Security
-│   │   │   ├── filter/                         # Request Filters
+│   │   │   ├── mapper/                         # Object Mappers
+│   │   │   ├── beans/                          # Spring Beans
 │   │   │   ├── common/                         # Shared Classes
-│   │   │   ├── util/                           # Utility Classes
-│   │   │   └── websocket/                      # WebSocket Config
+│   │   │   └── util/                           # Utility Classes
 │   │   └── resources/
 │   │       ├── application.yaml                # Base config
 │   │       ├── application-local.yaml          # Local dev
 │   │       ├── application-dev.yaml            # Server dev
 │   │       ├── application-test.yaml           # Testing
-│   │       ├── application-prod.yaml           # Production
-│   │       └── templates/                      # Email templates
+│   │       └── application-prod.yaml           # Production
 │   └── test/java/...                           # Tests
-├── pom.xml                                      # Maven config
-├── .env.example                                 # Env template
-├── .gitignore                                   # Git ignore
-└── README.md                                    # This file
+├── build.gradle.kts                            # Gradle build script
+├── settings.gradle.kts                         # Gradle settings
+├── gradle.properties                           # Gradle properties
+├── gradlew                                     # Gradle wrapper (Unix)
+├── gradlew.bat                                 # Gradle wrapper (Windows)
+├── Dockerfile                                  # Production Docker image
+├── Dockerfile.dev                              # Development Docker image
+├── .env.example                                # Env template
+├── .gitignore                                  # Git ignore
+└── README.md                                   # This file
 ```
 
 ---
 
-## ⚙️ Configuración
+## Configuracion
 
 ### Perfiles de Entorno
 
 #### **local** (Desarrollo Local)
 ```bash
-mvn spring-boot:run -Dspring-boot.run.arguments="--spring.profiles.active=local"
+./gradlew bootRun -Pprofile=local
 ```
 
 #### **dev** (Servidor de Desarrollo)
 ```bash
 export SPRING_PROFILES_ACTIVE=dev
-mvn spring-boot:run
+./gradlew bootRun
 ```
 
 #### **test** (Testing/CI-CD)
 ```bash
-mvn spring-boot:run -Dspring-boot.run.arguments="--spring.profiles.active=test"
+./gradlew bootRun -Pprofile=test
 ```
 
-#### **prod** (Producción)
+#### **prod** (Produccion)
 ```bash
 export SPRING_PROFILES_ACTIVE=prod
-java -jar umbral-0.0.1-SNAPSHOT.jar
+java -jar build/libs/umbral-1.0.0.jar
 ```
 
-### OpenAPI / Swagger Habilitación
+### OpenAPI / Swagger Habilitacion
 
 Cada perfil controla OpenAPI independientemente:
 
@@ -317,13 +326,13 @@ springdoc:
 
 ---
 
-## 📚 Uso de la API
+## Uso de la API
 
-### Autenticación
+### Autenticacion
 
 #### 1. Registrarse
 ```bash
-curl -X POST http://localhost:3001/api/v1/auth/register \
+curl -X POST http://localhost:8080/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
@@ -335,7 +344,7 @@ curl -X POST http://localhost:3001/api/v1/auth/register \
 
 #### 2. Login
 ```bash
-curl -X POST http://localhost:3001/api/v1/auth/login \
+curl -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
@@ -345,24 +354,24 @@ curl -X POST http://localhost:3001/api/v1/auth/login \
 
 #### 3. Acceder a endpoints protegidos
 ```bash
-curl -X GET http://localhost:3001/api/v1/transactions \
+curl -X GET http://localhost:8080/api/v1/transactions \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 ---
 
-## 📖 Documentación OpenAPI
+## Documentacion OpenAPI
 
 ### Acceder a Swagger UI
 ```
-http://localhost:3001/api/v1/docs
+http://localhost:8080/api/v1/docs
 ```
 
-**Características:**
-- 🔍 Explorar todos los endpoints
-- 📝 Ver parámetros y responses
-- ✅ Ejecutar peticiones directamente
-- 🔐 Autenticación integrada
+**Caracteristicas:**
+- Explorar todos los endpoints
+- Ver parametros y responses
+- Ejecutar peticiones directamente
+- Autenticacion integrada
 
 ### Habilitar/Deshabilitar Swagger
 
@@ -383,13 +392,13 @@ export API_DOCS_ENABLED=false
 
 ---
 
-## 🔐 Autenticación
+## Autenticacion
 
 ### JWT Tokens
 - **Access Token**: 24 horas
-- **Refresh Token**: 7 días
+- **Refresh Token**: 7 dias
 - **Algorithm**: HS512
-- **Secret**: Mínimo 64 caracteres
+- **Secret**: Minimo 64 caracteres
 
 ### MFA (TOTP)
 1. Habilitar: `POST /auth/mfa/setup`
@@ -398,49 +407,76 @@ export API_DOCS_ENABLED=false
 
 ---
 
-## 💻 Desarrollo
+## Desarrollo
 
 ### Crear un Nuevo Endpoint
 
 1. Crear DTO
-2. Crear método en Servicio
-3. Crear método en Controlador con anotaciones OpenAPI
+2. Crear metodo en Servicio
+3. Crear metodo en Controlador con anotaciones OpenAPI
 4. Agregar tests
 
-### Formattear Código
+### Formatear Codigo
 ```bash
 # Con IDE (IntelliJ/VS Code)
-# Code → Reformat Code
+# Code -> Reformat Code
 
-# O manualmente revisar indentación
+# O manualmente revisar indentacion
 ```
 
 ### Testing
 ```bash
-mvn clean test
-mvn test -Dtest=AuthServiceTest
+./gradlew test
+./gradlew test --tests "com.codesoftlabs.umbral.service.AuthServiceTest"
+```
+
+### Spring Boot DevTools
+
+El proyecto incluye Spring Boot DevTools para desarrollo con hot-reload:
+
+- **Auto-reinicio**: La aplicacion se reinicia automaticamente al detectar cambios en el codigo fuente
+- **LiveReload**: Compatible con extensiones de navegador para actualizaciones en tiempo real
+- **Habilitado en**: perfiles `local` y `dev`
+- **Deshabilitado automaticamente**: en perfil `prod`
+
+Para configurar DevTools, editar `application-local.yaml`:
+```yaml
+spring:
+  devtools:
+    restart:
+      enabled: true
+      additional-paths: src/main/java
+    livereload:
+      enabled: true
 ```
 
 ---
 
-## 🚀 Despliegue
+## Despliegue
 
 ### Build JAR
 ```bash
-mvn clean package -DskipTests
+./gradlew clean build -x test
 ```
 
 ### Despliegue Docker
 ```bash
+# Produccion
 docker build -t umbral:1.0 .
 docker run -d -p 8080:8080 \
   -e SPRING_PROFILES_ACTIVE=prod \
   umbral:1.0
+
+# Desarrollo
+docker build -f Dockerfile.dev -t umbral:dev .
+docker run -d -p 8080:8080 \
+  -e SPRING_PROFILES_ACTIVE=dev \
+  umbral:dev
 ```
 
 ---
 
-## 🔍 Solución de Problemas
+## Solucion de Problemas
 
 ### Error: "Database connection refused"
 ```bash
@@ -448,10 +484,14 @@ docker run -d -p 8080:8080 \
 psql -U postgres -c "SELECT 1"
 ```
 
-### Error: "Port 3001 already in use"
+### Error: "Port 8080 already in use"
 ```bash
-# Cambiar puerto o matar proceso
-lsof -ti :3001 | xargs kill -9
+# Windows
+netstat -ano | findstr :8080
+taskkill /PID <PID> /F
+
+# Linux/macOS
+lsof -ti :8080 | xargs kill -9
 ```
 
 ### Error: "JWT signature does not match"
@@ -460,11 +500,21 @@ lsof -ti :3001 | xargs kill -9
 echo ${JWT_ACCESS_SECRET} | wc -c
 ```
 
+### Error: "Gradle build failed"
+```bash
+# Limpiar cache de Gradle
+rm -rf .gradle
+rm -rf build
+
+# Reintentar build
+./gradlew clean build
+```
+
 ---
 
-## 🔐 Seguridad
+## Seguridad
 
-### Checklist de Producción
+### Checklist de Produccion
 - [ ] JWT_SECRET cambiado
 - [ ] SSL/TLS habilitado
 - [ ] Database user/password seguro
@@ -472,16 +522,16 @@ echo ${JWT_ACCESS_SECRET} | wc -c
 - [ ] Logging no incluye datos sensibles
 - [ ] CORS configurado
 - [ ] Rate limiting implementado
-- [ ] Backups automáticos
+- [ ] Backups automaticos
 
 ---
 
-## 📄 Licencia
+## Licencia
 
 MIT License - Ver `LICENSE`
 
 ---
 
-**Versión:** 1.0.0  
-**Status:** ✅ Production Ready  
-**Última actualización:** Abril 2026
+**Version:** 1.0.0
+**Status:** Production Ready
+**Ultima actualizacion:** Julio 2026

@@ -1,4 +1,11 @@
 spring:
+  devtools:
+    restart:
+      enabled: true
+      additional-paths: src/main/java
+    livereload:
+      enabled: false
+
   datasource:
     url: jdbc:postgresql://${DB_HOST:postgres}:${DB_PORT:5432}/${DB_NAME:umbral}
     username: ${DB_USER:umbral_user}

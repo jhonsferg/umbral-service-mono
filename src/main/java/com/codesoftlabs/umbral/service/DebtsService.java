@@ -43,6 +43,7 @@ public class DebtsService {
         debt.setRemainingAmount(dto.getRemainingAmount() != null ? BigDecimal.valueOf(dto.getRemainingAmount()) : BigDecimal.ZERO);
         debt.setInterestRate(dto.getInterestRate() != null ? dto.getInterestRate().floatValue() : 0f);
         debt.setCurrency(dto.getCurrencyCode() != null ? dto.getCurrencyCode() : "PEN");
+        debt.setType(dto.getType() != null ? dto.getType() : "I_OWE");
         debt.setDueDate(dto.getDueDate() != null ? dto.getDueDate().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime() : null);
         debt.setStatus("ACTIVE");
 

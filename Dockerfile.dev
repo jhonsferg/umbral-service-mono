@@ -3,22 +3,23 @@
 # ==============================================================================
 
 # STAGE 1 - builder
-FROM maven:3.9.9-eclipse-temurin-21-alpine AS builder
+FROM gradle:8.10-jdk21-alpine AS builder
 
 WORKDIR /build
 
 # Cache dependencies
-COPY pom.xml ./
-RUN --mount=type=cache,target=/root/.m2,sharing=locked \
-    mvn dependency:go-offline -B
+COPY build.gradle.kts settings.gradle.kts gradle.properties ./
+COPY gradle ./gradle
+RUN --mount=type=cache,target=/root/.gradle,sharing=locked \
+    gradle dependencies --no-daemon
 
 # Compile and package (skipping tests)
 COPY src ./src
-RUN --mount=type=cache,target=/root/.m2,sharing=locked \
-    mvn clean package -DskipTests=true
+RUN --mount=type=cache,target=/root/.gradle,sharing=locked \
+    gradle clean bootJar -x test --no-daemon
 
 # Extract layers
-RUN java -Djarmode=layertools -jar target/*.jar extract --destination /build/layers
+RUN java -Djarmode=layertools -jar build/libs/*.jar extract --destination /build/layers
 
 # STAGE 2 - runner
 FROM eclipse-temurin:21-jre-alpine AS runner

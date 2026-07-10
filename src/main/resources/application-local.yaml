@@ -5,6 +5,13 @@ spring:
     activate:
       on-profile: local
 
+  devtools:
+    restart:
+      enabled: true
+      additional-paths: src/main/java
+    livereload:
+      enabled: true
+
   datasource:
     url: jdbc:postgresql://localhost:5432/umbraldb
     username: umbral

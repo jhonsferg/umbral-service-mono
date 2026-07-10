@@ -59,11 +59,11 @@
 # ==============================================================================
 # STAGE 1 - builder
 # Compiles the application and extracts Spring Boot layers.
-# This stage uses a full Maven + JDK image; it is never shipped to production.
+# This stage uses a full Gradle + JDK image; it is never shipped to production.
 # ==============================================================================
-FROM maven:3.9.9-eclipse-temurin-21-alpine AS builder
+FROM gradle:8.10-jdk21-alpine AS builder
 
-# BUILD_PROFILE controls which Maven profile is activated during packaging.
+# BUILD_PROFILE controls which Gradle profile is activated during packaging.
 # Defaults to 'prod'; override at build time with:
 #   docker build --build-arg BUILD_PROFILE=staging .
 ARG BUILD_PROFILE=prod
@@ -71,31 +71,32 @@ ARG BUILD_PROFILE=prod
 WORKDIR /build
 
 # ── Step 1: Resolve dependencies (cache-optimized) ───────────────────────────
-# Only pom.xml is copied here. If application source code changes but pom.xml
-# does not, Docker reuses this layer from cache - skipping the entire
-# dependency download on every build.
+# Only build files are copied here. If application source code changes but
+# build files do not, Docker reuses this layer from cache - skipping the
+# entire dependency download on every build.
 #
-# --mount=type=cache,target=/root/.m2
-#   Mounts a persistent BuildKit cache volume at the Maven local repository
-#   path. The cache survives between builds and is never embedded in any image
+# --mount=type=cache,target=/root/.gradle
+#   Mounts a persistent BuildKit cache volume at the Gradle cache path.
+#   The cache survives between builds and is never embedded in any image
 #   layer. This is the single most impactful optimization in this Dockerfile:
 #   a cold build (no cache) takes ~2-3 min; warm builds typically take <20s.
 #
 # sharing=locked
 #   Prevents two concurrent builds on the same host from writing to the cache
-#   simultaneously, which can corrupt the .m2 index.
-COPY pom.xml ./
-RUN --mount=type=cache,target=/root/.m2,sharing=locked \
-    mvn dependency:go-offline -B
+#   simultaneously, which can corrupt the cache index.
+COPY build.gradle.kts settings.gradle.kts gradle.properties ./
+COPY gradle ./gradle
+RUN --mount=type=cache,target=/root/.gradle,sharing=locked \
+    gradle dependencies --no-daemon
 
 # ── Step 3: Compile and package ───────────────────────────────────────────────
 # Source code is copied after dependency resolution so that code-only changes
 # (the common case) do not invalidate the dependency cache layer above.
-# -DskipTests=true: tests are expected to run in a dedicated CI pipeline step,
+# -x test: tests are expected to run in a dedicated CI pipeline step,
 # not during image assembly, to keep build times predictable.
 COPY src ./src
-RUN --mount=type=cache,target=/root/.m2,sharing=locked \
-    mvn clean package -P${BUILD_PROFILE} -DskipTests=true
+RUN --mount=type=cache,target=/root/.gradle,sharing=locked \
+    gradle clean bootJar -Pprofile=${BUILD_PROFILE} -x test --no-daemon
 
 # ── Step 4: Extract Spring Boot layered JAR ───────────────────────────────────
 # jarmode=layertools splits the fat JAR into four directories under /build/layers:
@@ -106,7 +107,7 @@ RUN --mount=type=cache,target=/root/.m2,sharing=locked \
 # These directories are copied individually into the runner stage in
 # cache-friendliness order so Docker only rebuilds the layers that changed.
 RUN java -Djarmode=layertools \
-    -jar target/*.jar extract \
+    -jar build/libs/*.jar extract \
     --destination /build/layers
 
 

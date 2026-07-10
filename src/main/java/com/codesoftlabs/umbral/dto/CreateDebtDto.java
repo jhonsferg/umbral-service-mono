@@ -29,6 +29,9 @@ public class CreateDebtDto {
     @DecimalMin(value = "0.0", message = "Interest rate cannot be negative")
     private Double interestRate;
 
+    @Pattern(regexp = "^(OWED_TO_ME|I_OWE)$", message = "Type must be OWED_TO_ME or I_OWE")
+    private String type;
+
     @Pattern(regexp = "^[A-Z]{3}$", message = "Currency code must be a valid 3-letter ISO code")
     private String currencyCode;
 
