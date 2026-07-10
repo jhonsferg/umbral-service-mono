@@ -11,8 +11,34 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: false
 
-app:
+umbral:
+  app:
+    cors:
+      allowed-origins: http://localhost:8080
+      allowed-methods: GET,POST,PUT,DELETE,OPTIONS,PATCH
+      allowed-headers: Content-Type,Authorization,X-Requested-With
+      allow-credentials: true
+      max-age: 3600
+  smtp:
+    web:
+      url: http://localhost:8080
+  email:
+    confirmation:
+      expiration: 604800000
   jwt:
-    secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
-  frontend:
-    url: http://localhost:8080
+    issuer: https://umbral.codesoftlabs.com
+    access:
+      secret: dev-access-secret-only-for-local-use-replace-in-prod
+      expiration: 5m
+    refresh:
+      secret: dev-refresh-secret-only-for-local-use-replace-in-prod
+      expiration: 30d
+
+springdoc:
+  swagger-ui:
+    enabled: true
+  api-docs:
+    enabled: true
+
+server:
+  port: 8080

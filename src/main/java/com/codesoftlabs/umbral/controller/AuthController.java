@@ -95,6 +95,21 @@ public class AuthController {
         return ResponseEntity.ok(authService.verifyMfa(verifyDto, request));
     }
 
+    @PostMapping("/mfa")
+    @Operation(summary = "Verify MFA code (frontend contract)", description = "Verifies a multi-factor authentication code for login completion - accepts userId as String")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "MFA verification successful", content = @Content(schema = @Schema(implementation = TokenPairDto.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid or expired MFA code"),
+            @ApiResponse(responseCode = "401", description = "Authentication failed"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    public ResponseEntity<?> verifyMfaFrontend(@Valid @RequestBody MfaVerifyRequestDto verifyDto, HttpServletRequest request) {
+        MfaVerifyDto dto = new MfaVerifyDto();
+        dto.setUserId(UUID.fromString(verifyDto.getUserId()));
+        dto.setCode(verifyDto.getCode());
+        return ResponseEntity.ok(authService.verifyMfa(dto, request));
+    }
+
     @PostMapping("/refresh")
     @Operation(summary = "Refresh authentication tokens", description = "Uses a refresh token to obtain new access and refresh tokens")
     @ApiResponses(value = {

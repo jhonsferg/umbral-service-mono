@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/backup")
+@RequestMapping("/api/v1/activity/backup")
 @Tag(name = "backup", description = "User data backup and export")
 @SecurityRequirement(name = "bearerAuth")
 public class BackupController {
