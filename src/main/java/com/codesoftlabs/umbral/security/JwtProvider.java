@@ -29,14 +29,14 @@ public class JwtProvider {
 
     public String generateAccessToken(UUID userId, String email) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("sub", userId);
+        claims.put("sub", userId.toString());
         claims.put("email", email);
         return createToken(claims, userId.toString(), TimeUtils.parseDuration(jwtBean.getAccessExpiration()));
     }
 
     public String generateRefreshToken(UUID userId) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("sub", userId);
+        claims.put("sub", userId.toString());
         claims.put("type", "REFRESH");
         return createToken(claims, userId.toString(), TimeUtils.parseDuration(jwtBean.getRefreshExpiration()));
     }
